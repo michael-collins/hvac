@@ -107,16 +107,6 @@ h2{font-size:22px;margin:1.2em 0 .4em}
 }
 .legend-color.dashed{
   background:repeating-linear-gradient(90deg,var(--color) 0,var(--color) 5px,transparent 5px,transparent 10px);
-}
-</style>
-<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-<style>
-#root .vis-network {
-  background: #0b1328 !important;
-}
-#root .vis-network canvas {
-  background: #0b1328 !important;
-}
 </style>
 </head>
 <body>
@@ -170,7 +160,7 @@ h2{font-size:22px;margin:1.2em 0 .4em}
 
 <script>
 
-// vis-network configuration
+// Node and edge data
 const nodeColors = {
   transformer: '#9bb0d6',
   panel: '#7aa2ff',
@@ -189,286 +179,344 @@ const edgeColors = {
   damper: '#fca5a5'
 };
 
-// Create nodes
-const nodes = new vis.DataSet([
+// Create nodes with positions
+const nodesData = [
   {
     id: 'transformer',
-    label: '24VAC Transformer\n(UPS-backed)',
+    label: '24VAC Transformer\\n(UPS-backed)',
     x: 88.66,
     y: -124.50,
-    group: 'transformer',
-    color: { background: nodeColors.transformer, border: '#314', highlight: { background: '#b0c4e6', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true, multi: 'html' },
-    shape: 'box',
-    margin: 10
+    group: 'transformer'
   },
   {
     id: 'panel',
-    label: 'BMPLUS-3000\nZone Panel',
+    label: 'BMPLUS-3000\\nZone Panel',
     x: 589.71,
     y: 200.89,
-    group: 'panel',
-    color: { background: nodeColors.panel, border: '#314', highlight: { background: '#9ab2ff', border: '#314' } },
-    font: { color: '#081020', size: 14, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 15,
-    widthConstraint: { minimum: 240 }
+    group: 'panel'
   },
   {
     id: 'ecobeeZ1',
-    label: 'Ecobee Z1\n(Enhanced)',
+    label: 'Ecobee Z1\\n(Enhanced)',
     x: 1182.93,
     y: 30.60,
-    group: 'thermostat',
-    color: { background: nodeColors.thermostat, border: '#314', highlight: { background: '#8ef7c1', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 10
+    group: 'thermostat'
   },
   {
     id: 'ecobeeZ2',
-    label: 'Ecobee Z2\n(Premium)',
+    label: 'Ecobee Z2\\n(Premium)',
     x: 258.20,
     y: 423.58,
-    group: 'thermostat',
-    color: { background: nodeColors.thermostat, border: '#314', highlight: { background: '#8ef7c1', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 10
+    group: 'thermostat'
   },
   {
     id: 'relay',
-    label: 'RIBU1C\nRelay',
+    label: 'RIBU1C\\nRelay',
     x: 807.16,
     y: 517.62,
-    group: 'relay',
-    color: { background: nodeColors.relay, border: '#314', highlight: { background: '#b0c4e6', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 10
+    group: 'relay'
   },
   {
     id: 'dehumidifier',
-    label: 'GeneralAire\nDehumidifier',
+    label: 'GeneralAire\\nDehumidifier',
     x: 1227.93,
     y: 515.53,
-    group: 'dehumidifier',
-    color: { background: nodeColors.dehumidifier, border: '#314', highlight: { background: '#fde68d', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 10
+    group: 'dehumidifier'
   },
   {
     id: 'damper1',
-    label: 'Zone 1 Damper\n(First Floor)',
+    label: 'Zone 1 Damper\\n(First Floor)',
     x: 608.66,
     y: -67.03,
-    group: 'damper',
-    color: { background: nodeColors.damper, border: '#314', highlight: { background: '#fcb5b5', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 10
+    group: 'damper'
   },
   {
     id: 'damper2',
-    label: 'Zone 2 Damper\n(Basement)',
+    label: 'Zone 2 Damper\\n(Basement)',
     x: 708.66,
     y: 657.48,
-    group: 'damper',
-    color: { background: nodeColors.damper, border: '#314', highlight: { background: '#fcb5b5', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 10
+    group: 'damper'
   },
   {
     id: 'equipment',
-    label: 'HVAC Equipment\n(Rheem RP14 + Aux)',
+    label: 'HVAC Equipment\\n(Rheem RP14 + Aux)',
     x: 969.85,
     y: 631.24,
-    group: 'equipment',
-    color: { background: nodeColors.equipment, border: '#314', highlight: { background: '#b0c4e6', border: '#314' } },
-    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
-    shape: 'box',
-    margin: 15
+    group: 'equipment'
   }
-]);
-
-// Define edges (connections)
-const initialEdges = [
-  // Power distribution
-  { id: 'e1', source: 'transformer', target: 'panel', sourceHandle: 'r', targetHandle: 'r', label: 'R (24VAC)', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
-  { id: 'e2', source: 'transformer', target: 'panel', sourceHandle: 'c', targetHandle: 'c', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
-  { id: 'e3', source: 'transformer', target: 'ecobeeZ1', label: 'R', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
-  { id: 'e4', source: 'transformer', target: 'ecobeeZ1', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
-  { id: 'e5', source: 'transformer', target: 'ecobeeZ2', label: 'R', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
-  { id: 'e6', source: 'transformer', target: 'ecobeeZ2', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
-  
-  // Ecobee HVAC calls
-  { id: 'e7', source: 'ecobeeZ1', target: 'panel', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e8', source: 'ecobeeZ1', target: 'panel', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
-  { id: 'e9', source: 'ecobeeZ2', target: 'panel', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e10', source: 'ecobeeZ2', target: 'panel', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
-  
-  // Panel to equipment
-  { id: 'e11', source: 'panel', target: 'equipment', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e12', source: 'panel', target: 'equipment', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
-  { id: 'e13', source: 'panel', target: 'equipment', label: 'G', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e14', source: 'panel', target: 'equipment', label: 'O', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  
-  // Dehumidify path
-  { id: 'e15', source: 'ecobeeZ2', target: 'relay', label: 'ACC+', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'dehumidify' } },
-  { id: 'e16', source: 'panel', target: 'relay', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'dehumidify' } },
-  { id: 'e17', source: 'relay', target: 'dehumidifier', label: 'D1', type: 'smoothstep', animated: false, style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'dry-contact', group: 'dehumidify' } },
-  { id: 'e18', source: 'relay', target: 'dehumidifier', label: 'D2', type: 'smoothstep', animated: false, style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'dry-contact', group: 'dehumidify' } },
-  
-  // Zone damper control
-  { id: 'e19', source: 'panel', target: 'damper1', label: 'M1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
-  { id: 'e20', source: 'panel', target: 'damper1', label: 'M4', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
-  { id: 'e21', source: 'panel', target: 'damper1', label: 'M6', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
-  { id: 'e22', source: 'panel', target: 'damper2', label: 'M1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone2' } },
-  { id: 'e23', source: 'panel', target: 'damper2', label: 'M4', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone2' } }
 ];
 
-function Flow() {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
-  const [rfInstance, setRfInstance] = useState(null);
+// Define edges (connections) for SVG rendering
+const edgesData = [
+  // Power distribution
+  { from: 'transformer', to: 'panel', label: 'R (24VAC)', color: edgeColors.hot, width: 3, group: 'power' },
+  { from: 'transformer', to: 'panel', label: 'C', color: edgeColors.common, width: 3, group: 'power' },
+  { from: 'transformer', to: 'ecobeeZ1', label: 'R', color: edgeColors.hot, width: 3, group: 'power' },
+  { from: 'transformer', to: 'ecobeeZ1', label: 'C', color: edgeColors.common, width: 3, group: 'power' },
+  { from: 'transformer', to: 'ecobeeZ2', label: 'R', color: edgeColors.hot, width: 3, group: 'power' },
+  { from: 'transformer', to: 'ecobeeZ2', label: 'C', color: edgeColors.common, width: 3, group: 'power' },
+  
+  // Ecobee HVAC calls
+  { from: 'ecobeeZ1', to: 'panel', label: 'Y1', color: edgeColors.signal, width: 2.5, group: 'cooling' },
+  { from: 'ecobeeZ1', to: 'panel', label: 'W1', color: edgeColors.signal, width: 2.5, group: 'heating' },
+  { from: 'ecobeeZ2', to: 'panel', label: 'Y1', color: edgeColors.signal, width: 2.5, group: 'cooling' },
+  { from: 'ecobeeZ2', to: 'panel', label: 'W1', color: edgeColors.signal, width: 2.5, group: 'heating' },
+  
+  // Panel to equipment
+  { from: 'panel', to: 'equipment', label: 'Y1', color: edgeColors.signal, width: 2.5, group: 'cooling' },
+  { from: 'panel', to: 'equipment', label: 'W1', color: edgeColors.signal, width: 2.5, group: 'heating' },
+  { from: 'panel', to: 'equipment', label: 'G', color: edgeColors.signal, width: 2.5, group: 'cooling' },
+  { from: 'panel', to: 'equipment', label: 'O', color: edgeColors.signal, width: 2.5, group: 'cooling' },
+  
+  // Dehumidify path
+  { from: 'ecobeeZ2', to: 'relay', label: 'ACC+', color: edgeColors.signal, width: 2.5, group: 'dehumidify' },
+  { from: 'panel', to: 'relay', label: 'C', color: edgeColors.common, width: 2.5, group: 'dehumidify' },
+  { from: 'relay', to: 'dehumidifier', label: 'D1', color: edgeColors['dry-contact'], width: 2.5, dashed: true, group: 'dehumidify' },
+  { from: 'relay', to: 'dehumidifier', label: 'D2', color: edgeColors['dry-contact'], width: 2.5, dashed: true, group: 'dehumidify' },
+  
+  // Zone damper control
+  { from: 'panel', to: 'damper1', label: 'M1', color: edgeColors.damper, width: 2.5, group: 'zone1' },
+  { from: 'panel', to: 'damper1', label: 'M4', color: edgeColors.damper, width: 2.5, group: 'zone1' },
+  { from: 'panel', to: 'damper1', label: 'M6', color: edgeColors.damper, width: 2.5, group: 'zone1' },
+  { from: 'panel', to: 'damper2', label: 'M1', color: edgeColors.damper, width: 2.5, group: 'zone2' },
+  { from: 'panel', to: 'damper2', label: 'M4', color: edgeColors.damper, width: 2.5, group: 'zone2' }
+];
 
-  const onNodesChange = useCallback((changes) => {
-    setNodes((nds) => ReactFlowLib.applyNodeChanges(changes, nds));
-  }, []);
+// Initialize SVG network
+let svgElement, nodeElements = {}, edgeElements = [];
+let viewBox = { x: -200, y: -250, width: 1600, height: 1100 };
+let isPanning = false, panStart = { x: 0, y: 0 };
 
-  const onEdgesChange = useCallback((changes) => {
-    setEdges((eds) => ReactFlowLib.applyEdgeChanges(changes, eds));
-  }, []);
-
-  const onInit = useCallback((instance) => {
-    setRfInstance(instance);
-    setTimeout(() => instance.fitView(), 100);
-  }, []);
-
-  // Export layout
-  window.exportLayout = useCallback(() => {
-    const layout = {
-      components: {},
-      edges: edges.map(e => ({
-        from: e.source,
-        to: e.target,
-        type: e.data.wireType,
-        group: e.data.group,
-        label: e.label
-      }))
-    };
+function initializeNetwork() {
+  const container = document.getElementById('root');
+  container.innerHTML = '';
+  
+  // Create SVG element
+  svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgElement.setAttribute('width', '100%');
+  svgElement.setAttribute('height', '100%');
+  svgElement.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+  svgElement.style.background = '#0b1328';
+  container.appendChild(svgElement);
+  
+  // Draw edges first (so they appear behind nodes)
+  edgesData.forEach((edge, idx) => {
+    const fromNode = nodesData.find(n => n.id === edge.from);
+    const toNode = nodesData.find(n => n.id === edge.to);
     
-    nodes.forEach(node => {
-      layout.components[node.id] = {
-        x: node.position.x,
-        y: node.position.y,
-        type: node.data.nodeType,
-        label: node.data.label
-      };
-    });
-    
-    const json = JSON.stringify(layout, null, 2);
-    
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'hvac-reactflow-layout.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    console.log("=== React Flow Layout ===");
-    console.log(json);
-    alert("Layout exported! Check downloads and console.");
-  }, [nodes, edges]);
-
-  window.fitView = useCallback(() => {
-    if (rfInstance) rfInstance.fitView();
-  }, [rfInstance]);
-
-  window.highlightPath = useCallback((group) => {
-    // Highlight edges
-    setEdges(initialEdges.map(edge => {
-      if (edge.data.group === group) {
-        return {
-          ...edge,
-          animated: true,
-          style: { ...edge.style, strokeWidth: 5, stroke: '#fcd34d' }
-        };
-      } else {
-        return {
-          ...edge,
-          style: { ...edge.style, opacity: 0.2 }
-        };
+    if (fromNode && toNode) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', fromNode.x);
+      line.setAttribute('y1', fromNode.y);
+      line.setAttribute('x2', toNode.x);
+      line.setAttribute('y2', toNode.y);
+      line.setAttribute('stroke', edge.color);
+      line.setAttribute('stroke-width', edge.width);
+      if (edge.dashed) {
+        line.setAttribute('stroke-dasharray', '5,5');
       }
-    }));
-    
-    // Highlight nodes
-    const relevantNodes = new Set();
-    initialEdges.forEach(edge => {
-      if (edge.data.group === group) {
-        relevantNodes.add(edge.source);
-        relevantNodes.add(edge.target);
-      }
-    });
-    
-    setNodes(initialNodes.map(node => {
-      if (relevantNodes.has(node.id)) {
-        return node;
-      } else {
-        return {
-          ...node,
-          style: { ...node.style, opacity: 0.3 }
-        };
-      }
-    }));
-  }, []);
-
-  window.resetHighlight = useCallback(() => {
-    setEdges(initialEdges);
-    setNodes(initialNodes);
-  }, []);
-
-  return React.createElement(ReactFlow, {
-    nodes: nodes,
-    edges: edges,
-    onNodesChange: onNodesChange,
-    onEdgesChange: onEdgesChange,
-    onInit: onInit,
-    fitView: true,
-    minZoom: 0.2,
-    maxZoom: 2,
-    defaultEdgeOptions: {
-      type: 'smoothstep'
-    },
-    children: [
-      React.createElement(Controls, { key: 'controls' }),
-      React.createElement(Background, { key: 'background', color: '#223', gap: 16 }),
-      React.createElement(MiniMap, { 
-        key: 'minimap',
-        nodeColor: (node) => node.style.background,
-        maskColor: 'rgba(11, 19, 40, 0.8)'
-      })
-    ]
+      line.setAttribute('opacity', '0.8');
+      line.dataset.group = edge.group;
+      svgElement.appendChild(line);
+      edgeElements.push({ element: line, data: edge });
+      
+      // Add label
+      const midX = (fromNode.x + toNode.x) / 2;
+      const midY = (fromNode.y + toNode.y) / 2;
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', midX);
+      text.setAttribute('y', midY - 5);
+      text.setAttribute('fill', '#e8eefc');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = edge.label;
+      text.dataset.group = edge.group;
+      svgElement.appendChild(text);
+      edgeElements.push({ element: text, data: edge });
+    }
   });
+  
+  // Draw nodes
+  nodesData.forEach(node => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+    g.dataset.nodeId = node.id;
+    g.dataset.group = node.group;
+    
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', -60);
+    rect.setAttribute('y', -30);
+    rect.setAttribute('width', 120);
+    rect.setAttribute('height', 60);
+    rect.setAttribute('rx', 8);
+    rect.setAttribute('fill', nodeColors[node.group]);
+    rect.setAttribute('stroke', '#314');
+    rect.setAttribute('stroke-width', 2);
+    g.appendChild(rect);
+    
+    const lines = node.label.split('\\n');
+    lines.forEach((line, idx) => {
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', 0);
+      text.setAttribute('y', -10 + (idx * 16));
+      text.setAttribute('fill', '#081020');
+      text.setAttribute('font-size', node.id === 'panel' ? '14' : '13');
+      text.setAttribute('font-weight', 'bold');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.textContent = line;
+      g.appendChild(text);
+    });
+    
+    svgElement.appendChild(g);
+    nodeElements[node.id] = g;
+  });
+  
+  // Add pan and zoom
+  container.addEventListener('mousedown', startPan);
+  container.addEventListener('mousemove', handlePan);
+  container.addEventListener('mouseup', endPan);
+  container.addEventListener('mouseleave', endPan);
+  container.addEventListener('wheel', handleZoom);
 }
 
-// Setup button handlers
+function startPan(e) {
+  if (e.target === svgElement || e.target.tagName === 'svg') {
+    isPanning = true;
+    panStart = { x: e.clientX, y: e.clientY };
+  }
+}
+
+function handlePan(e) {
+  if (!isPanning) return;
+  const dx = (panStart.x - e.clientX) * (viewBox.width / svgElement.clientWidth);
+  const dy = (panStart.y - e.clientY) * (viewBox.height / svgElement.clientHeight);
+  viewBox.x += dx;
+  viewBox.y += dy;
+  svgElement.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+  panStart = { x: e.clientX, y: e.clientY };
+}
+
+function endPan() {
+  isPanning = false;
+}
+
+function handleZoom(e) {
+  e.preventDefault();
+  const scale = e.deltaY > 0 ? 1.1 : 0.9;
+  viewBox.width *= scale;
+  viewBox.height *= scale;
+  svgElement.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+}
+
+// Export layout function
+window.exportLayout = function() {
+  const layout = {
+    components: {},
+    edges: []
+  };
+  
+  nodesData.forEach(node => {
+    layout.components[node.id] = {
+      x: node.x,
+      y: node.y,
+      type: node.group,
+      label: node.label
+    };
+  });
+  
+  edgesData.forEach(edge => {
+    layout.edges.push({
+      from: edge.from,
+      to: edge.to,
+      label: edge.label,
+      group: edge.group
+    });
+  });
+  
+  const json = JSON.stringify(layout, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'hvac-network-layout.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  console.log("=== Network Layout ===");
+  console.log(json);
+  alert("Layout exported! Check downloads and console.");
+};
+
+// Fit view function
+window.fitView = function() {
+  viewBox = { x: -200, y: -250, width: 1600, height: 1100 };
+  svgElement.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`);
+};
+
+// Highlight path function
+window.highlightPath = function(group) {
+  // Find nodes in this group
+  const highlightNodeIds = new Set();
+  edgesData.forEach(edge => {
+    if (edge.group === group) {
+      highlightNodeIds.add(edge.from);
+      highlightNodeIds.add(edge.to);
+    }
+  });
+  
+  // Update edges
+  edgeElements.forEach(({ element, data }) => {
+    if (data.group === group) {
+      element.setAttribute('stroke-width', data.width * 2);
+      element.setAttribute('stroke', '#fcd34d');
+      element.setAttribute('opacity', '1');
+    } else {
+      element.setAttribute('opacity', '0.2');
+    }
+  });
+  
+  // Update nodes
+  Object.keys(nodeElements).forEach(nodeId => {
+    const node = nodeElements[nodeId];
+    if (highlightNodeIds.has(nodeId)) {
+      node.setAttribute('opacity', '1');
+    } else {
+      node.setAttribute('opacity', '0.3');
+    }
+  });
+};
+
+// Reset highlight function
+window.resetHighlight = function() {
+  // Reset all edges
+  edgeElements.forEach(({ element, data }) => {
+    const originalColor = data.color;
+    element.setAttribute('stroke', originalColor);
+    element.setAttribute('stroke-width', data.width);
+    element.setAttribute('opacity', '0.8');
+  });
+  
+  // Reset all nodes
+  Object.keys(nodeElements).forEach(nodeId => {
+    nodeElements[nodeId].setAttribute('opacity', '1');
+  });
+};
+
+// Setup button handlers and initialize network
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('exportBtn').addEventListener('click', () => window.exportLayout());
-  document.getElementById('fitViewBtn').addEventListener('click', () => window.fitView());
+  // Initialize the network
+  initializeNetwork();
+  
+  // Set up button handlers
+  document.getElementById('exportBtn').addEventListener('click', window.exportLayout);
+  document.getElementById('fitViewBtn').addEventListener('click', window.fitView);
   document.getElementById('highlightDehumid').addEventListener('click', () => window.highlightPath('dehumidify'));
   document.getElementById('highlightCooling').addEventListener('click', () => window.highlightPath('cooling'));
   document.getElementById('highlightHeating').addEventListener('click', () => window.highlightPath('heating'));
   document.getElementById('highlightPower').addEventListener('click', () => window.highlightPath('power'));
-  document.getElementById('resetBtn').addEventListener('click', () => window.resetHighlight());
+  document.getElementById('resetBtn').addEventListener('click', window.resetHighlight);
 });
-
-// Render the app
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(Flow));
 </script>
 </body>
 </html>
