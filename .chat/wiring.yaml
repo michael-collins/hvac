@@ -1,0 +1,133 @@
+# Wiring schema context for HVAC Zoning + Dehumidification Reference
+name: hvac-wiring-schema
+description: >
+  Defines devices, terminals, and connection logic for the BMPLUS-3000
+  zoning system with Ecobee thermostats, GeneralAire dehumidifier,
+  and RIBU1C relay. Used for generating and editing SVG wiring diagrams
+  inside HTML documentation pages hosted on GitHub Pages.
+
+devices:
+  BMPLUS-3000:
+    description: EWC UltraZone 2-zone control panel.
+    zones:
+      Zone1:
+        M1: Common
+        M4: Close
+        M6: Open
+      Zone2:
+        M1: Common
+        M4: Close
+        M6: Open
+    terminals:
+      R: 24VAC hot
+      C: 24VAC common
+      Y1: Compressor call
+      G: Fan
+      W1: Aux heat
+      O: Reversing valve
+  Ecobee-Z1:
+    description: Ecobee Smart Thermostat Enhanced (Zone 1).
+    terminals:
+      R: 24VAC hot
+      C: Common
+      Y1: Compressor
+      W1: Heat
+      G: Fan
+      O/B: Reversing valve
+  Ecobee-Z2:
+    description: Ecobee Smart Thermostat Premium (Zone 2).
+    terminals:
+      R: 24VAC hot
+      C: Common
+      Y1: Compressor
+      W1: Heat
+      G: Fan
+      O/B: Reversing valve
+      ACC+: Dehumidify call output (24VAC signal)
+  GeneralAire-Dehumidifier:
+    description: Whole-house dehumidifier (D1/D2 dry contact).
+    terminals:
+      D1: Control input (dry contact)
+      D2: Return path (dry contact)
+      RF: Fan control (optional, not used)
+      GF: Fan common (optional)
+      GT: Ground/test (optional)
+  RIBU1C-Relay:
+    description: 24VAC isolation relay for humidity control and damper override.
+    terminals:
+      Coil+ : From Ecobee ACC+
+      Coil- : From Common bus
+      COM: To GeneralAire D2
+      NO : To GeneralAire D1
+  Dampers:
+    Zone1:
+      description: Controls airflow to first-floor zone.
+      M1: Common
+      M4: Drive close
+      M6: Drive open
+    Zone2:
+      description: Basement zone (dehumidification zone).
+      M1: Common
+      M4: Drive close
+      M6: Drive open
+  Transformer:
+    description: Dedicated 24VAC transformer for control system power stability.
+    primary: 120VAC (UPS-backed)
+    secondary: 24VAC (R & C to panel/stats)
+
+logic:
+  dehumidification:
+    trigger: Ecobee-Z2.ACC+ energized
+    sequence:
+      - RIBU1C relay coil energizes.
+      - Contacts close between D1 and D2 on GeneralAire → unit runs.
+      - Z1 damper receives CLOSE signal (M1→M4).
+      - Z2 damper receives OPEN signal (M1→M6).
+      - BMPLUS-3000 fan relay starts blower.
+    termination: ACC+ drops; relay opens; dampers revert to normal control.
+  cooling:
+    trigger: Ecobee Y1 → BMPLUS-3000 → compressor.
+  heating:
+    trigger: Ecobee W1 → BMPLUS-3000 → furnace/aux heat.
+  fan_only:
+    trigger: Ecobee G → BMPLUS-3000 → blower relay.
+  brownout_protection:
+    source: UPS + dedicated transformer.
+    purpose: Maintain power to control logic and thermostats during short voltage dips.
+
+diagram_conventions:
+  line_styles:
+    24VAC_hot: solid #7aa2ff
+    24VAC_common: solid #6ee7a1
+    dry_contact: dashed #6ee7a1
+    signal: solid #fcd34d
+  box_style:
+    fill: "#0e1530"
+    stroke: "#314"
+    corner_radius: 12
+  font:
+    family: "sans-serif"
+    size: 14
+  annotations:
+    - Each SVG should include a legend explaining line colors and contact types.
+    - Label devices with full names and role (e.g., “Ecobee Zone 2 — Basement”).
+    - Include connection arrows when directionality clarifies control.
+
+file_targets:
+  - wiring-bmplus3000-ecobee-dehumid.html
+  - wiring-bmplus5000-ecobee-dehumid.html
+  - diagrams/*.svg
+
+tasks_supported:
+  - add_component
+  - trace_signal
+  - highlight_zone
+  - generate_connection_table
+  - produce_device_legend
+  - compare_variants (BMPLUS-3000 vs BMPLUS-5000)
+
+chat_guidance:
+  - Maintain consistent electrical color coding across diagrams.
+  - When adding components, keep spacing uniform and labels readable.
+  - Prefer descriptive terminal labels over abbreviations when possible.
+  - Include tooltips or accessible ARIA labels for all SVG devices.

@@ -1,0 +1,64 @@
+# Chat context for HVAC Dehumidification + Zoning Reference Site
+name: hvac-zoning-reference
+description: >
+  Static HTML/CSS/JS documentation site hosted on GitHub Pages.
+  Purpose: to document wiring logic, power stability, and troubleshooting
+  for a two-zone HVAC system using BMPLUS-3000 zone panel,
+  Ecobee Enhanced + Premium thermostats, Rheem RP14 heat pump with
+  propane aux, and a GeneralAire whole-house dehumidifier (D1/D2).
+  Site includes SVG wiring diagrams, explanatory cards, and flowcharts.
+
+goals:
+  - Maintain clean, dependency-free static pages (no frameworks).
+  - Provide visual documentation and annotated diagrams.
+  - Eventually extend to include BMPLUS-5000 variant and power-monitor module.
+  - Keep compatible with GitHub Pages (Jekyll disabled).
+
+project_structure:
+  root:
+    - index.html
+    - wiring-bmplus3000-ecobee-dehumid.html
+    - power-stability-ups-transformer.html
+    - troubleshooting-flowchart.html
+    - damper-identification.html
+    - /assets (optional: images, css, js)
+  deployment:
+    - GitHub Pages (main branch → /docs or root)
+    - No build step required
+
+tech_stack:
+  html: Vanilla semantic HTML5
+  css: Internal stylesheet with dark theme variables
+  js: Minimal inline script for toggle interactions
+  tools:
+    - Codespaces or VS Code for live preview
+    - GitHub Copilot / ChatGPT for iterative documentation
+  browser_support:
+    - Modern Chromium, Firefox, Safari (ES6+)
+
+preferred_style:
+  - Concise, technically accurate explanations
+  - Annotated SVG diagrams for hardware connections
+  - Use Tailwind-like spacing system in CSS (rem or px)
+  - Markdown-style tables and lists when embedded in docs
+
+developer:
+  name: Michael Collins
+  notes:
+    - Ecobee Zone 2 handles humidity logic.
+    - Dehumidifier control: dry contact D1↔D2.
+    - Relay (RIBU1C) controls damper overrides.
+    - Dedicated transformer and small UPS recommended.
+
+next_steps:
+  - Add live schematic toggles for BMPLUS-5000 variant.
+  - Include part numbers (transformer, UPS, RIBU1C) table.
+  - Add troubleshooting logs section for field notes.
+  - Consider JSON-based wiring schema for automation.
+
+chat_instructions:
+  - When I ask questions, assume I’m editing these HTML docs or wiring logic.
+  - Provide direct code blocks ready to paste into the repo.
+  - Use consistent color palette (#0b1220 bg, #7aa2ff accent, etc.)
+  - Favor accessible labels, ARIA roles, and semantic markup.
+

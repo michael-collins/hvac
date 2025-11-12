@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC Wiring — Interactive Network Editor</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#0f1830; --ink:#e8eefc; --muted:#9bb0d6; --accent:#7aa2ff; --good:#6ee7a1; --warn:#fcd34d; --bad:#fca5a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1600px;margin:0 auto;padding:32px}
+.card{background:var(--card);border:1px solid #223;border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+h1{font-size:28px;margin:.2em 0 0.2em}
+h2{font-size:22px;margin:1.2em 0 .4em}
+.note{color:var(--muted)}
+.btn{display:inline-block;background:var(--accent);color:#081020;padding:10px 14px;border-radius:10px;font-weight:600;margin-right:8px}
+.controls{
+  margin:10px 0;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.controls button{
+  background:var(--card);
+  color:var(--ink);
+  border:1px solid #223;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+}
+.controls button:hover{
+  background:var(--accent);
+  color:#081020;
+}
+#root {
+  width: 100%;
+  height: 850px;
+  background: #0b1328;
+  border: 1px solid #223;
+  border-radius: 12px;
+}
+
+/* React Flow overrides for dark theme */
+.react-flow__node {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.react-flow__edge-path {
+  stroke-width: 3;
+}
+
+.react-flow__edge-text {
+  font-size: 10px;
+  fill: #e8eefc;
+}
+
+.react-flow__controls {
+  background: var(--card);
+  border: 1px solid #223;
+}
+
+.react-flow__controls button {
+  background: var(--card);
+  border-bottom: 1px solid #223;
+  color: var(--ink);
+}
+
+.react-flow__controls button:hover {
+  background: var(--accent);
+  color: #081020;
+}
+
+.react-flow__minimap {
+  background: var(--card);
+  border: 1px solid #223;
+}
+
+.react-flow__background {
+  background: #0b1328;
+}
+
+.legend{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  margin:15px 0;
+}
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#0b1328;
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid #223;
+}
+.legend-color{
+  width:30px;
+  height:3px;
+  border-radius:2px;
+}
+.legend-color.dashed{
+  background:repeating-linear-gradient(90deg,var(--color) 0,var(--color) 5px,transparent 5px,transparent 10px);
+}
+</style>
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+#root .vis-network {
+  background: #0b1328 !important;
+}
+#root .vis-network canvas {
+  background: #0b1328 !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>HVAC Wiring — Interactive Network Editor</h1>
+  
+  <div class="card">
+    <h2>Full System Schematic (vis-network)</h2>
+    <p class="note">Drag nodes to reposition, zoom with mouse wheel, pan by dragging canvas. Interactive physics-based network with smooth edges.</p>
+    <div class="controls">
+      <button id="exportBtn">💾 Export Layout JSON</button>
+      <button id="fitViewBtn">🔍 Fit View</button>
+      <button id="highlightDehumid">Trace Dehumidify Signal</button>
+      <button id="highlightCooling">Trace Cooling Call</button>
+      <button id="highlightHeating">Trace Heating Call</button>
+      <button id="highlightPower">Show Power Distribution</button>
+      <button id="resetBtn">Reset Highlight</button>
+    </div>
+    <div id="root"></div>
+    
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="--color:#7aa2ff;background:#7aa2ff;"></div>
+        <span>24VAC Hot (R)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="--color:#6ee7a1;background:#6ee7a1;"></div>
+        <span>24VAC Common (C)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color dashed" style="--color:#6ee7a1;"></div>
+        <span>Dry Contact (D1/D2)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="--color:#fcd34d;background:#fcd34d;"></div>
+        <span>Control Signal</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="--color:#fca5a5;background:#fca5a5;"></div>
+        <span>Damper Control</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="--color:#9bb0d6;background:#9bb0d6;"></div>
+        <span>HVAC Calls (Y1/W1/G/O)</span>
+      </div>
+    </div>
+  </div>
+
+  <p><a class="btn" href="index.html">Back</a> <a class="btn" href="wiring-simple-d3.html">View D3.js Version</a></p>
+</div>
+
+<script>
+
+// vis-network configuration
+const nodeColors = {
+  transformer: '#9bb0d6',
+  panel: '#7aa2ff',
+  thermostat: '#6ee7a1',
+  relay: '#9bb0d6',
+  dehumidifier: '#fcd34d',
+  damper: '#fca5a5',
+  equipment: '#9bb0d6'
+};
+
+const edgeColors = {
+  hot: '#7aa2ff',
+  common: '#6ee7a1',
+  signal: '#fcd34d',
+  'dry-contact': '#6ee7a1',
+  damper: '#fca5a5'
+};
+
+// Create nodes
+const nodes = new vis.DataSet([
+  {
+    id: 'transformer',
+    label: '24VAC Transformer\n(UPS-backed)',
+    x: 88.66,
+    y: -124.50,
+    group: 'transformer',
+    color: { background: nodeColors.transformer, border: '#314', highlight: { background: '#b0c4e6', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true, multi: 'html' },
+    shape: 'box',
+    margin: 10
+  },
+  {
+    id: 'panel',
+    label: 'BMPLUS-3000\nZone Panel',
+    x: 589.71,
+    y: 200.89,
+    group: 'panel',
+    color: { background: nodeColors.panel, border: '#314', highlight: { background: '#9ab2ff', border: '#314' } },
+    font: { color: '#081020', size: 14, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 15,
+    widthConstraint: { minimum: 240 }
+  },
+  {
+    id: 'ecobeeZ1',
+    label: 'Ecobee Z1\n(Enhanced)',
+    x: 1182.93,
+    y: 30.60,
+    group: 'thermostat',
+    color: { background: nodeColors.thermostat, border: '#314', highlight: { background: '#8ef7c1', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 10
+  },
+  {
+    id: 'ecobeeZ2',
+    label: 'Ecobee Z2\n(Premium)',
+    x: 258.20,
+    y: 423.58,
+    group: 'thermostat',
+    color: { background: nodeColors.thermostat, border: '#314', highlight: { background: '#8ef7c1', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 10
+  },
+  {
+    id: 'relay',
+    label: 'RIBU1C\nRelay',
+    x: 807.16,
+    y: 517.62,
+    group: 'relay',
+    color: { background: nodeColors.relay, border: '#314', highlight: { background: '#b0c4e6', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 10
+  },
+  {
+    id: 'dehumidifier',
+    label: 'GeneralAire\nDehumidifier',
+    x: 1227.93,
+    y: 515.53,
+    group: 'dehumidifier',
+    color: { background: nodeColors.dehumidifier, border: '#314', highlight: { background: '#fde68d', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 10
+  },
+  {
+    id: 'damper1',
+    label: 'Zone 1 Damper\n(First Floor)',
+    x: 608.66,
+    y: -67.03,
+    group: 'damper',
+    color: { background: nodeColors.damper, border: '#314', highlight: { background: '#fcb5b5', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 10
+  },
+  {
+    id: 'damper2',
+    label: 'Zone 2 Damper\n(Basement)',
+    x: 708.66,
+    y: 657.48,
+    group: 'damper',
+    color: { background: nodeColors.damper, border: '#314', highlight: { background: '#fcb5b5', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 10
+  },
+  {
+    id: 'equipment',
+    label: 'HVAC Equipment\n(Rheem RP14 + Aux)',
+    x: 969.85,
+    y: 631.24,
+    group: 'equipment',
+    color: { background: nodeColors.equipment, border: '#314', highlight: { background: '#b0c4e6', border: '#314' } },
+    font: { color: '#081020', size: 13, face: 'system-ui', bold: true },
+    shape: 'box',
+    margin: 15
+  }
+]);
+
+// Define edges (connections)
+const initialEdges = [
+  // Power distribution
+  { id: 'e1', source: 'transformer', target: 'panel', sourceHandle: 'r', targetHandle: 'r', label: 'R (24VAC)', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
+  { id: 'e2', source: 'transformer', target: 'panel', sourceHandle: 'c', targetHandle: 'c', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
+  { id: 'e3', source: 'transformer', target: 'ecobeeZ1', label: 'R', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
+  { id: 'e4', source: 'transformer', target: 'ecobeeZ1', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
+  { id: 'e5', source: 'transformer', target: 'ecobeeZ2', label: 'R', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
+  { id: 'e6', source: 'transformer', target: 'ecobeeZ2', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
+  
+  // Ecobee HVAC calls
+  { id: 'e7', source: 'ecobeeZ1', target: 'panel', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
+  { id: 'e8', source: 'ecobeeZ1', target: 'panel', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
+  { id: 'e9', source: 'ecobeeZ2', target: 'panel', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
+  { id: 'e10', source: 'ecobeeZ2', target: 'panel', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
+  
+  // Panel to equipment
+  { id: 'e11', source: 'panel', target: 'equipment', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
+  { id: 'e12', source: 'panel', target: 'equipment', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
+  { id: 'e13', source: 'panel', target: 'equipment', label: 'G', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
+  { id: 'e14', source: 'panel', target: 'equipment', label: 'O', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
+  
+  // Dehumidify path
+  { id: 'e15', source: 'ecobeeZ2', target: 'relay', label: 'ACC+', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'dehumidify' } },
+  { id: 'e16', source: 'panel', target: 'relay', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'dehumidify' } },
+  { id: 'e17', source: 'relay', target: 'dehumidifier', label: 'D1', type: 'smoothstep', animated: false, style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'dry-contact', group: 'dehumidify' } },
+  { id: 'e18', source: 'relay', target: 'dehumidifier', label: 'D2', type: 'smoothstep', animated: false, style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'dry-contact', group: 'dehumidify' } },
+  
+  // Zone damper control
+  { id: 'e19', source: 'panel', target: 'damper1', label: 'M1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
+  { id: 'e20', source: 'panel', target: 'damper1', label: 'M4', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
+  { id: 'e21', source: 'panel', target: 'damper1', label: 'M6', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
+  { id: 'e22', source: 'panel', target: 'damper2', label: 'M1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone2' } },
+  { id: 'e23', source: 'panel', target: 'damper2', label: 'M4', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone2' } }
+];
+
+function Flow() {
+  const [nodes, setNodes] = useState(initialNodes);
+  const [edges, setEdges] = useState(initialEdges);
+  const [rfInstance, setRfInstance] = useState(null);
+
+  const onNodesChange = useCallback((changes) => {
+    setNodes((nds) => ReactFlowLib.applyNodeChanges(changes, nds));
+  }, []);
+
+  const onEdgesChange = useCallback((changes) => {
+    setEdges((eds) => ReactFlowLib.applyEdgeChanges(changes, eds));
+  }, []);
+
+  const onInit = useCallback((instance) => {
+    setRfInstance(instance);
+    setTimeout(() => instance.fitView(), 100);
+  }, []);
+
+  // Export layout
+  window.exportLayout = useCallback(() => {
+    const layout = {
+      components: {},
+      edges: edges.map(e => ({
+        from: e.source,
+        to: e.target,
+        type: e.data.wireType,
+        group: e.data.group,
+        label: e.label
+      }))
+    };
+    
+    nodes.forEach(node => {
+      layout.components[node.id] = {
+        x: node.position.x,
+        y: node.position.y,
+        type: node.data.nodeType,
+        label: node.data.label
+      };
+    });
+    
+    const json = JSON.stringify(layout, null, 2);
+    
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hvac-reactflow-layout.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    console.log("=== React Flow Layout ===");
+    console.log(json);
+    alert("Layout exported! Check downloads and console.");
+  }, [nodes, edges]);
+
+  window.fitView = useCallback(() => {
+    if (rfInstance) rfInstance.fitView();
+  }, [rfInstance]);
+
+  window.highlightPath = useCallback((group) => {
+    // Highlight edges
+    setEdges(initialEdges.map(edge => {
+      if (edge.data.group === group) {
+        return {
+          ...edge,
+          animated: true,
+          style: { ...edge.style, strokeWidth: 5, stroke: '#fcd34d' }
+        };
+      } else {
+        return {
+          ...edge,
+          style: { ...edge.style, opacity: 0.2 }
+        };
+      }
+    }));
+    
+    // Highlight nodes
+    const relevantNodes = new Set();
+    initialEdges.forEach(edge => {
+      if (edge.data.group === group) {
+        relevantNodes.add(edge.source);
+        relevantNodes.add(edge.target);
+      }
+    });
+    
+    setNodes(initialNodes.map(node => {
+      if (relevantNodes.has(node.id)) {
+        return node;
+      } else {
+        return {
+          ...node,
+          style: { ...node.style, opacity: 0.3 }
+        };
+      }
+    }));
+  }, []);
+
+  window.resetHighlight = useCallback(() => {
+    setEdges(initialEdges);
+    setNodes(initialNodes);
+  }, []);
+
+  return React.createElement(ReactFlow, {
+    nodes: nodes,
+    edges: edges,
+    onNodesChange: onNodesChange,
+    onEdgesChange: onEdgesChange,
+    onInit: onInit,
+    fitView: true,
+    minZoom: 0.2,
+    maxZoom: 2,
+    defaultEdgeOptions: {
+      type: 'smoothstep'
+    },
+    children: [
+      React.createElement(Controls, { key: 'controls' }),
+      React.createElement(Background, { key: 'background', color: '#223', gap: 16 }),
+      React.createElement(MiniMap, { 
+        key: 'minimap',
+        nodeColor: (node) => node.style.background,
+        maskColor: 'rgba(11, 19, 40, 0.8)'
+      })
+    ]
+  });
+}
+
+// Setup button handlers
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('exportBtn').addEventListener('click', () => window.exportLayout());
+  document.getElementById('fitViewBtn').addEventListener('click', () => window.fitView());
+  document.getElementById('highlightDehumid').addEventListener('click', () => window.highlightPath('dehumidify'));
+  document.getElementById('highlightCooling').addEventListener('click', () => window.highlightPath('cooling'));
+  document.getElementById('highlightHeating').addEventListener('click', () => window.highlightPath('heating'));
+  document.getElementById('highlightPower').addEventListener('click', () => window.highlightPath('power'));
+  document.getElementById('resetBtn').addEventListener('click', () => window.resetHighlight());
+});
+
+// Render the app
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(Flow));
+</script>
+</body>
+</html>

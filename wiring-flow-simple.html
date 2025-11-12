@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC Wiring — React Flow Test</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.3.2/dist/style.css">
+<style>
+body { margin: 0; font-family: system-ui; }
+#root { width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xyflow/react@12.3.2/dist/umd/index.js"></script>
+
+<script>
+// Debug what's available
+console.log('React:', typeof React);
+console.log('ReactDOM:', typeof ReactDOM);
+console.log('Window keys:', Object.keys(window).filter(k => k.includes('Flow') || k.includes('flow') || k.includes('XY')));
+
+setTimeout(() => {
+  const h = React.createElement;
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  
+  // Check all possible global names
+  const possibleGlobals = [
+    'ReactFlow',
+    'XYFlow', 
+    'reactflow',
+    'xyflow',
+    'ReactFlowRenderer',
+    'ReactFlowLib'
+  ];
+  
+  let rfLib = null;
+  for (const name of possibleGlobals) {
+    if (window[name]) {
+      console.log('Found:', name, window[name]);
+      rfLib = window[name];
+      break;
+    }
+  }
+  
+  if (!rfLib) {
+    root.render(h('div', { style: { padding: '20px', color: 'red' } },
+      'ReactFlow UMD not found. Checked: ' + possibleGlobals.join(', ')
+    ));
+  } else {
+    const { ReactFlow = rfLib.default || rfLib } = rfLib;
+    root.render(h('div', { style: { padding: '20px' } },
+      'ReactFlow found! Type: ' + typeof ReactFlow
+    ));
+  }
+}, 500);
+</script>
+</body>
+</html>

@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC Wiring — React Flow with Handles</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.11.4/dist/style.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Archivo+Narrow:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="wiring-flow.css">
+</head>
+<body>
+<div class="container">
+  <h1>HVAC Wiring — React Flow with Multiple Handles</h1>
+  
+  <div class="card">
+    <h2>Full System Schematic</h2>
+    <p class="note">Click to select nodes. Drag selected nodes to move them. Drag canvas to pan.</p>
+    <div class="controls">
+      <button id="exportBtn">💾 Export Layout JSON</button>
+      <button id="fitViewBtn">🔍 Fit View</button>
+      <button id="highlightPower">⚡ Highlight Power Distribution</button>
+      <button id="highlightCooling">❄️ Highlight Cooling Path</button>
+      <button id="highlightHeating">🔥 Highlight Heating Path</button>
+      <button id="highlightDehumid">💧 Highlight Dehumidifier</button>
+      <button id="resetBtn">🔄 Reset Highlight</button>
+    </div>
+    <div style="display: flex; width: 100%; gap: 0;">
+      <div id="root" style="flex: 1; min-width: 0;"></div>
+      <div id="info-panel" style="width: 400px; height: 850px; background: var(--cb-bg-900); border-left: 2px solid var(--cb-ink-dim); overflow-y: auto; padding: 20px; display: none;">
+        <div id="info-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <p><a class="btn" href="index.html">Back</a> <a class="btn" href="wiring-simple-d3.html">View D3.js Version</a></p>
+</div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reactflow@11.11.4/dist/umd/index.min.js"></script>
+
+<script>
+// Get React utilities and ReactFlow components
+const { useState, useCallback, createElement: h, Fragment } = React;
+const { ReactFlow: RF, Controls, Background, MiniMap, Handle, Position, NodeToolbar, NodeResizer } = window.ReactFlow;
+
+// Custom node component with multiple handles
+function HVACNode({ data, selected }) {
+  const { label, nodeType, handles } = data;
+  
+  return h('div', { 
+    className: `hvac-node ${nodeType}`,
+    style: { position: 'relative' }
+  },
+    // Render handles
+    handles && handles.map((handle, idx) => 
+      h(Fragment, { key: handle.id },
+        h(Handle, {
+          type: handle.type,
+          position: handle.position,
+          id: handle.id,
+          style: handle.style
+        }),
+        h('span', { 
+          className: 'handle-label',
+          style: {
+            [handle.position === Position.Top ? 'bottom' : 
+             handle.position === Position.Bottom ? 'top' :
+             handle.position === Position.Left ? 'right' : 'left']: '100%',
+            [handle.position === Position.Top || handle.position === Position.Bottom ? 'left' : 'top']: handle.style[handle.position === Position.Top || handle.position === Position.Bottom ? 'left' : 'top']
+          }
+        }, handle.label)
+      )
+    ),
+    // Node label
+    h('div', null, label),
+    // Configuration button for panel node
+    nodeType === 'panel' && h('button', {
+      className: 'config-btn',
+      onClick: (e) => {
+        e.stopPropagation();
+        window.showConfigPanel && window.showConfigPanel();
+      }
+    }, '⚙️ Configuration')
+  );
+}
+
+const nodeTypes = {
+  hvacNode: HVACNode
+};
+
+// Initial nodes with handles
+const initialNodes = [
+  {
+    id: 'transformer',
+    type: 'hvacNode',
+    position: { x: -120.44, y: 177.34 },
+    data: { 
+      label: '24VAC Transformer\n(UPS-backed)',
+      nodeType: 'transformer',
+      handles: [
+        { id: 'r-out', type: 'source', position: Position.Right, label: 'R', style: { top: '35%', left: '100%' } },
+        { id: 'c-out', type: 'source', position: Position.Right, label: 'C', style: { top: '65%', left: '100%' } }
+      ]
+    }
+  },
+  {
+    id: 'panel',
+    type: 'hvacNode',
+    position: { x: 589.71, y: 200.89 },
+    data: { 
+      label: 'BMPLUS-3000\nZone Panel',
+      nodeType: 'panel',
+      handles: [
+        // Power in (left top)
+        { id: 'r-in', type: 'target', position: Position.Left, label: 'R', style: { top: '5%' } },
+        { id: 'c-in', type: 'target', position: Position.Left, label: 'C', style: { top: '10%' } },
+        // Zone 1 Stat inputs (left)
+        { id: 'z1-r-in', type: 'target', position: Position.Left, label: 'Z1 STAT: R', style: { top: '20%' } },
+        { id: 'z1-g-in', type: 'target', position: Position.Left, label: 'Z1 STAT: G', style: { top: '27%' } },
+        { id: 'z1-y-in', type: 'target', position: Position.Left, label: 'Z1 STAT: Y', style: { top: '34%' } },
+        { id: 'z1-ob-in', type: 'target', position: Position.Left, label: 'Z1 STAT: O/B', style: { top: '41%' } },
+        { id: 'z1-we-in', type: 'target', position: Position.Left, label: 'Z1 STAT: W/E', style: { top: '48%' } },
+        // Zone 2 Stat inputs (left)
+        { id: 'z2-r-in', type: 'target', position: Position.Left, label: 'Z2 STAT: R', style: { top: '60%' } },
+        { id: 'z2-g-in', type: 'target', position: Position.Left, label: 'Z2 STAT: G', style: { top: '67%' } },
+        { id: 'z2-y-in', type: 'target', position: Position.Left, label: 'Z2 STAT: Y', style: { top: '74%' } },
+        { id: 'z2-ob-in', type: 'target', position: Position.Left, label: 'Z2 STAT: O/B', style: { top: '81%' } },
+        { id: 'z2-we-in', type: 'target', position: Position.Left, label: 'Z2 STAT: W/E', style: { top: '88%' } },
+        // HVAC out (right)
+        { id: 'y1-out', type: 'source', position: Position.Right, label: 'Y1', style: { top: '20%' } },
+        { id: 'w1-out', type: 'source', position: Position.Right, label: 'W1', style: { top: '35%' } },
+        { id: 'w2-out', type: 'source', position: Position.Right, label: 'W2', style: { top: '50%' } },
+        { id: 'g-out', type: 'source', position: Position.Right, label: 'G', style: { top: '65%' } },
+        { id: 'o-out', type: 'source', position: Position.Right, label: 'O', style: { top: '80%' } },
+        // Zone 1 damper (top)
+        { id: 'z1m1-out', type: 'source', position: Position.Top, label: 'Z1-M1', style: { left: '25%' } },
+        { id: 'z1m4-out', type: 'source', position: Position.Top, label: 'Z1-M4', style: { left: '50%' } },
+        { id: 'z1m6-out', type: 'source', position: Position.Top, label: 'Z1-M6', style: { left: '75%' } },
+        // Zone 2 damper (bottom)
+        { id: 'z2m1-out', type: 'source', position: Position.Bottom, label: 'Z2-M1', style: { left: '40%' } },
+        { id: 'z2m4-out', type: 'source', position: Position.Bottom, label: 'Z2-M4', style: { left: '65%' } },
+        // Relay connection
+        { id: 'c-relay', type: 'source', position: Position.Bottom, label: 'C', style: { left: '85%' } }
+      ]
+    }
+  },
+  {
+    id: 'ecobeeZ1',
+    type: 'hvacNode',
+    position: { x: 327.83, y: 46.13 },
+    data: { 
+      label: 'Ecobee Z1\n(Enhanced)',
+      nodeType: 'thermostat',
+      zone: 'Z1',
+      handles: [
+        { id: 'r-in', type: 'target', position: Position.Left, label: 'R', style: { top: '15%' } },
+        { id: 'c-in', type: 'target', position: Position.Left, label: 'C', style: { top: '85%' } },
+        { id: 'r-out', type: 'source', position: Position.Bottom, label: 'R', style: { left: '10%' } },
+        { id: 'g-out', type: 'source', position: Position.Bottom, label: 'G', style: { left: '28%' } },
+        { id: 'y-out', type: 'source', position: Position.Bottom, label: 'Y', style: { left: '46%' } },
+        { id: 'ob-out', type: 'source', position: Position.Bottom, label: 'O/B', style: { left: '64%' } },
+        { id: 'we-out', type: 'source', position: Position.Bottom, label: 'W/E', style: { left: '82%' } }
+      ]
+    }
+  },
+  {
+    id: 'ecobeeZ2',
+    type: 'hvacNode',
+    position: { x: 247.52, y: 674.55 },
+    data: { 
+      label: 'Ecobee Z2\n(Premium)',
+      nodeType: 'thermostat',
+      zone: 'Z2',
+      handles: [
+        { id: 'r-in', type: 'target', position: Position.Left, label: 'R', style: { top: '15%' } },
+        { id: 'c-in', type: 'target', position: Position.Left, label: 'C', style: { top: '50%' } },
+        { id: 'r-out', type: 'source', position: Position.Top, label: 'R', style: { left: '10%' } },
+        { id: 'g-out', type: 'source', position: Position.Top, label: 'G', style: { left: '28%' } },
+        { id: 'y-out', type: 'source', position: Position.Top, label: 'Y', style: { left: '46%' } },
+        { id: 'ob-out', type: 'source', position: Position.Top, label: 'O/B', style: { left: '64%' } },
+        { id: 'we-out', type: 'source', position: Position.Top, label: 'W/E', style: { left: '82%' } },
+        { id: 'acc-out', type: 'source', position: Position.Right, label: 'ACC+', style: { top: '85%' } }
+      ]
+    }
+  },
+  {
+    id: 'relay',
+    type: 'hvacNode',
+    position: { x: 911.46, y: 702.18 },
+    data: { 
+      label: 'RIBU1C\nRelay',
+      nodeType: 'relay',
+      handles: [
+        { id: 'coil-plus', type: 'target', position: Position.Top, label: 'Coil+', style: { left: '65%' } },
+        { id: 'coil-minus', type: 'target', position: Position.Top, label: 'Coil-', style: { left: '35%' } },
+        { id: 'no-out', type: 'source', position: Position.Right, label: 'NO', style: { top: '35%' } },
+        { id: 'com-out', type: 'source', position: Position.Right, label: 'COM', style: { top: '65%' } }
+      ]
+    }
+  },
+  {
+    id: 'dehumidifier',
+    type: 'hvacNode',
+    position: { x: 1171.95, y: 704.12 },
+    data: { 
+      label: 'GeneralAire\nDehumidifier',
+      nodeType: 'dehumidifier',
+      handles: [
+        { id: 'd1-in', type: 'target', position: Position.Left, label: 'D1', style: { top: '35%' } },
+        { id: 'd2-in', type: 'target', position: Position.Left, label: 'D2', style: { top: '65%' } }
+      ]
+    }
+  },
+  {
+    id: 'damper1',
+    type: 'hvacNode',
+    position: { x: 592.38, y: 48.92 },
+    data: { 
+      label: 'Zone 1 Damper\n(First Floor)',
+      nodeType: 'damper',
+      handles: [
+        { id: 'm1-in', type: 'target', position: Position.Bottom, label: 'M1', style: { left: '25%' } },
+        { id: 'm4-in', type: 'target', position: Position.Bottom, label: 'M4', style: { left: '50%' } },
+        { id: 'm6-in', type: 'target', position: Position.Bottom, label: 'M6', style: { left: '75%' } }
+      ]
+    }
+  },
+  {
+    id: 'damper2',
+    type: 'hvacNode',
+    position: { x: 601.59, y: 751.53 },
+    data: { 
+      label: 'Zone 2 Damper\n(Basement)',
+      nodeType: 'damper',
+      handles: [
+        { id: 'm1-in', type: 'target', position: Position.Top, label: 'M1', style: { left: '35%' } },
+        { id: 'm4-in', type: 'target', position: Position.Top, label: 'M4', style: { left: '65%' } }
+      ]
+    }
+  },
+  {
+    id: 'equipment',
+    type: 'hvacNode',
+    position: { x: 1117.62, y: 270.55 },
+    data: { 
+      label: 'HVAC Equipment\n(Rheem RP14 + Aux)',
+      nodeType: 'equipment',
+      handles: [
+        { id: 'y1-in', type: 'target', position: Position.Left, label: 'Y1', style: { top: '15%' } },
+        { id: 'w1-in', type: 'target', position: Position.Left, label: 'W1', style: { top: '35%' } },
+        { id: 'w2-in', type: 'target', position: Position.Left, label: 'W2', style: { top: '55%' } },
+        { id: 'g-in', type: 'target', position: Position.Left, label: 'G', style: { top: '70%' } },
+        { id: 'o-in', type: 'target', position: Position.Left, label: 'O', style: { top: '85%' } }
+      ]
+    }
+  }
+];
+
+// Edge colors
+const edgeColors = {
+  hot: '#7aa2ff',
+  common: '#6ee7a1',
+  signal: '#fcd34d',
+  'dry-contact': '#6ee7a1',
+  damper: '#fca5a5'
+};
+
+// Initial edges with specific handle connections
+const initialEdges = [
+  // Power distribution
+  { id: 'e1', source: 'transformer', sourceHandle: 'r-out', target: 'panel', targetHandle: 'r-in', label: 'R (24VAC)', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e2', source: 'transformer', sourceHandle: 'c-out', target: 'panel', targetHandle: 'c-in', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e3', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ1', targetHandle: 'r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e4', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ1', targetHandle: 'c-in', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e5', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ2', targetHandle: 'r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e6', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ2', targetHandle: 'c-in', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  
+  // Zone 1 Ecobee calls to panel
+  { id: 'e7', source: 'ecobeeZ1', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z1-r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e7a', source: 'ecobeeZ1', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z1-g-in', label: 'G', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e8', source: 'ecobeeZ1', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z1-y-in', label: 'Y', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e8a', source: 'ecobeeZ1', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z1-ob-in', label: 'O/B', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e8b', source: 'ecobeeZ1', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z1-we-in', label: 'W/E', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  
+  // Zone 2 Ecobee calls to panel
+  { id: 'e9', source: 'ecobeeZ2', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z2-r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e9a', source: 'ecobeeZ2', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z2-g-in', label: 'G', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e10', source: 'ecobeeZ2', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z2-y-in', label: 'Y', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e10a', source: 'ecobeeZ2', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z2-ob-in', label: 'O/B', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e10b', source: 'ecobeeZ2', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z2-we-in', label: 'W/E', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  
+  // Panel to equipment
+  { id: 'e11', source: 'panel', sourceHandle: 'y1-out', target: 'equipment', targetHandle: 'y1-in', label: 'Y1', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e12', source: 'panel', sourceHandle: 'w1-out', target: 'equipment', targetHandle: 'w1-in', label: 'W1', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e12a', source: 'panel', sourceHandle: 'w2-out', target: 'equipment', targetHandle: 'w2-in', label: 'W2', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e13', source: 'panel', sourceHandle: 'g-out', target: 'equipment', targetHandle: 'g-in', label: 'G', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e14', source: 'panel', sourceHandle: 'o-out', target: 'equipment', targetHandle: 'o-in', label: 'O', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  
+  // Dehumidify path
+  { id: 'e15', source: 'ecobeeZ2', sourceHandle: 'acc-out', target: 'relay', targetHandle: 'coil-plus', label: 'ACC+', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e16', source: 'panel', sourceHandle: 'c-relay', target: 'relay', targetHandle: 'coil-minus', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e17', source: 'relay', sourceHandle: 'no-out', target: 'dehumidifier', targetHandle: 'd1-in', label: 'D1', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e18', source: 'relay', sourceHandle: 'com-out', target: 'dehumidifier', targetHandle: 'd2-in', label: 'D2', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  
+  // Zone damper control
+  { id: 'e19', source: 'panel', sourceHandle: 'z1m1-out', target: 'damper1', targetHandle: 'm1-in', label: 'M1', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e20', source: 'panel', sourceHandle: 'z1m4-out', target: 'damper1', targetHandle: 'm4-in', label: 'M4', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e21', source: 'panel', sourceHandle: 'z1m6-out', target: 'damper1', targetHandle: 'm6-in', label: 'M6', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e22', source: 'panel', sourceHandle: 'z2m1-out', target: 'damper2', targetHandle: 'm1-in', label: 'M1', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e23', source: 'panel', sourceHandle: 'z2m4-out', target: 'damper2', targetHandle: 'm4-in', label: 'M4', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } }
+];
+
+function Flow() {
+  const [nodes, setNodes] = useState(window.currentNodes || initialNodes);
+  const [edges, setEdges] = useState(window.currentEdges || initialEdges);
+  const [rfInstance, setRfInstance] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+
+  // Expose setEdges and setNodes globally for highlight functions
+  window.flowSetEdges = setEdges;
+  window.flowSetNodes = setNodes;
+
+  const onNodesChange = useCallback((changes) => {
+    setNodes((nds) => {
+      const updated = [...nds];
+      changes.forEach(change => {
+        if (change.type === 'position' && change.position) {
+          const node = updated.find(n => n.id === change.id);
+          if (node) node.position = change.position;
+        }
+        if (change.type === 'remove') {
+          const idx = updated.findIndex(n => n.id === change.id);
+          if (idx > -1) updated.splice(idx, 1);
+        }
+        if (change.type === 'select') {
+          const node = updated.find(n => n.id === change.id);
+          if (node) {
+            node.selected = change.selected;
+          }
+        }
+      });
+      window.currentNodes = updated;
+      return updated;
+    });
+  }, [rfInstance]);
+
+  const onEdgesChange = useCallback((changes) => {
+    // Only update edges if there are actual changes that matter
+    const hasRelevantChanges = changes.some(change => 
+      change.type === 'remove' || change.type === 'add' || change.type === 'reset'
+    );
+    if (hasRelevantChanges) {
+      setEdges(eds => [...eds]);
+    }
+  }, []);
+
+  const onNodeContextMenu = useCallback((event, node) => {
+    event.preventDefault();
+    
+    // Only show context menu for Ecobee thermostats
+    if (node.id === 'ecobeeZ1' || node.id === 'ecobeeZ2') {
+      const zone = node.data.zone;
+      
+      // Get mouse position relative to the viewport
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const x = event.clientX;
+      const y = event.clientY;
+      
+      setContextMenu({
+        x: x + 10, // Slight offset from cursor
+        y: y + 10,
+        zone: zone
+      });
+    }
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  const onInit = useCallback((instance) => {
+    setRfInstance(instance);
+    window.rfInstance = instance;
+    // Delay fitView to allow nodes to render first
+    setTimeout(() => instance.fitView({ padding: 0.2, duration: 200 }), 50);
+  }, []);
+
+  return h(RF, {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onPaneClick,
+    onNodeContextMenu,
+    onInit,
+    nodeTypes,
+    fitView: false,
+    minZoom: 0.2,
+    maxZoom: 2,
+    defaultEdgeOptions: {
+      type: 'smoothstep'
+    }
+  },
+    h(Controls),
+    h(Background, { color: '#223', gap: 16 }),
+    h(MiniMap, { 
+      nodeColor: (node) => {
+        const colors = {
+          transformer: '#9bb0d6',
+          panel: '#7aa2ff',
+          thermostat: '#6ee7a1',
+          relay: '#9bb0d6',
+          dehumidifier: '#fcd34d',
+          damper: '#fca5a5',
+          equipment: '#9bb0d6'
+        };
+        return colors[node.data.nodeType] || '#9bb0d6';
+      },
+      maskColor: 'rgba(11, 19, 40, 0.8)'
+    }),
+    // Context menu
+    contextMenu && h('div', {
+      className: 'context-menu',
+      style: {
+        position: 'fixed',
+        left: `${contextMenu.x}px`,
+        top: `${contextMenu.y}px`
+      },
+      onMouseDown: (e) => e.stopPropagation()
+    },
+      h('button', { onClick: () => { window.callHeat(contextMenu.zone); setContextMenu(null); } }, `🔥 Heat`),
+      h('button', { onClick: () => { window.callAuxHeat(contextMenu.zone); setContextMenu(null); } }, `⚡ Aux`),
+      h('button', { onClick: () => { window.callCool(contextMenu.zone); setContextMenu(null); } }, `❄️ Cool`),
+      h('button', { 
+        onClick: () => { window.callDehumidify(contextMenu.zone); setContextMenu(null); },
+        disabled: contextMenu.zone !== 'Z2'
+      }, `💧 Dehumid`)
+    )
+  );
+}
+
+// Setup export function (outside setTimeout so it's globally available)
+const exportLayout = () => {
+  const layout = {
+    nodes: window.currentNodes || [],
+    edges: window.currentEdges || []
+  };
+  
+  const json = JSON.stringify(layout, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'hvac-reactflow-layout.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  console.log("=== React Flow Layout ===");
+  console.log(json);
+  alert("Layout exported! Check downloads and console.");
+};
+
+window.exportLayout = exportLayout;
+
+// Setup event handlers and render
+document.getElementById('exportBtn').addEventListener('click', exportLayout);
+document.getElementById('fitViewBtn').addEventListener('click', () => {
+  if (window.rfInstance) window.rfInstance.fitView({ padding: 0.2 });
+});
+
+// System information data
+const systemInfo = {
+  heat: {
+    title: '🔥 Heating – Heat Pump Mode',
+    content: `
+<p><strong>Trigger:</strong> Either Ecobee calls for heat when outdoor conditions are above your Ecobee's balance-point temperature.</p>
+<p><strong>Signals:</strong> Ecobee → Y1 (compressor), O (reversing valve = heat), G (fan).</p>
+
+<h3>Sequence</h3>
+<ol>
+  <li>Ecobee issues heat call.</li>
+  <li>BMPLUS-3000:
+    <ul>
+      <li>Opens the calling zone's damper(s).</li>
+      <li>Closes all other dampers.</li>
+      <li>Sends Y1 + O + G to the heat pump / air handler.</li>
+    </ul>
+  </li>
+  <li>Heat pump energizes in heating mode.</li>
+  <li>Blower starts immediately (some units have a 5–10 s delay).</li>
+  <li>When the thermostat is satisfied:
+    <ul>
+      <li>Ecobee drops Y1; BMPLUS stops the call; blower runs ~90 s post-purge.</li>
+      <li>Dampers return to neutral / standby.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>Normal Delays & Protections</h3>
+<ul>
+  <li><strong>Compressor short-cycle delay:</strong> 5 min built-in at the heat pump and sometimes in Ecobee.</li>
+  <li><strong>Zone panel call overlap delay:</strong> ~30 s stagger to prevent simultaneous zone calls.</li>
+  <li><strong>Fan off-delay:</strong> 60–90 s to clear coil heat.</li>
+</ul>
+    `
+  },
+  cool: {
+    title: '❄️ Cooling – Heat Pump Mode',
+    content: `
+<p><strong>Trigger:</strong> Either Ecobee calls for cooling (indoor temp > setpoint).</p>
+<p><strong>Signals:</strong> Ecobee → Y1 (compressor), O (reversing valve = cool), G (fan).</p>
+
+<h3>Sequence</h3>
+<ol>
+  <li>Ecobee calls for cooling.</li>
+  <li>BMPLUS opens the calling zone's damper(s), closes others.</li>
+  <li>Sends Y1 + O + G to the outdoor unit.</li>
+  <li>Heat pump runs in cooling mode.</li>
+  <li>Blower runs immediately.</li>
+  <li>When satisfied:
+    <ul>
+      <li>Ecobee drops Y1; BMPLUS releases the call.</li>
+      <li>Blower continues 60–90 s post-cool-off.</li>
+      <li>Dampers normalize.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>Normal Delays & Protections</h3>
+<ul>
+  <li><strong>Compressor anti-short-cycle:</strong> 5 min typical.</li>
+  <li><strong>Condensate / coil defrost safety:</strong> BMPLUS ignores brief drops in thermostat signal.</li>
+  <li><strong>Zone coordination delay:</strong> ~30 s between zone calls.</li>
+</ul>
+    `
+  },
+  aux: {
+    title: '🔥 Auxiliary Heat – Propane Furnace (Dual Fuel)',
+    content: `
+<p><strong>Trigger:</strong></p>
+<ul>
+  <li>Ecobee decides outdoor temperature is below your Compressor Lockout or Aux Lock-in setpoint.</li>
+  <li>Or the heat pump ran too long without reaching setpoint.</li>
+</ul>
+<p><strong>Signals:</strong> Ecobee → W1 (heat call) only — no Y1/O.</p>
+
+<h3>Sequence</h3>
+<ol>
+  <li>Ecobee disables the compressor and energizes W1.</li>
+  <li>BMPLUS-3000 forwards W1 to the furnace control board.</li>
+  <li>Furnace:
+    <ul>
+      <li>Begins its ignition sequence (~30 s pre-purge, ignition, flame establish).</li>
+      <li>Controls its own blower delay (typically 30–45 s after burner ignition).</li>
+    </ul>
+  </li>
+  <li>When satisfied:
+    <ul>
+      <li>Ecobee drops W1.</li>
+      <li>Furnace shuts gas, runs post-purge fan (60–90 s).</li>
+      <li>BMPLUS opens/closes dampers back to normal.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>Normal Delays & Protections</h3>
+<ul>
+  <li><strong>Compressor lockout:</strong> Ensures no simultaneous HP + furnace run.</li>
+  <li><strong>Furnace time-based fan control:</strong> The BMPLUS lets the furnace handle blower timing.</li>
+  <li><strong>Short-cycle prevention:</strong> Ecobee minimum on/off times (default 5 min).</li>
+</ul>
+    `
+  },
+  dehumidify: {
+    title: '💧 Dehumidify – Basement Zone Only',
+    content: `
+<p><strong>Trigger:</strong> Zone 2 Ecobee detects humidity above setpoint (e.g., > 50%).</p>
+<p><strong>Signals:</strong> Ecobee ACC+ → relay coil → GeneralAire D1–D2 closed.</p>
+
+<h3>Sequence</h3>
+<ol>
+  <li>Ecobee sends 24 VAC on ACC+.</li>
+  <li>Relay (RIBU1C) energizes:
+    <ul>
+      <li>Closes D1–D2 on GeneralAire → dehumidifier runs.</li>
+      <li>Forces Zone 2 damper OPEN (M1→M6).</li>
+      <li>Forces Zone 1 damper CLOSED (M1→M4).</li>
+    </ul>
+  </li>
+  <li>BMPLUS fan output energizes blower at low speed (G signal).</li>
+  <li>Dehumidifier pulls air from the return; exhausts dry air back into the same plenum.</li>
+  <li>When humidity is satisfied:
+    <ul>
+      <li>Ecobee drops ACC+; relay de-energizes; D1–D2 open → dehumidifier stops.</li>
+      <li>Dampers revert to normal zone control.</li>
+      <li>Blower runs its fan-off delay (30–60 s).</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>Normal Delays & Protections</h3>
+<ul>
+  <li><strong>Hysteresis:</strong> Ecobee waits ~2 % RH below setpoint before dropping call (prevents short cycling).</li>
+  <li><strong>Fan During Dehumidify:</strong> Set to OFF so blower runs only when the relay is active.</li>
+  <li><strong>Lockout:</strong> Dehumidifier will not run during compressor defrost or aux-heat mode.</li>
+  <li><strong>Minimum off-time:</strong> Usually 3 min internal to GeneralAire.</li>
+</ul>
+    `
+  }
+};
+
+function showInfoPanel(mode) {
+  const panel = document.getElementById('info-panel');
+  const content = document.getElementById('info-content');
+  
+  if (mode && systemInfo[mode]) {
+    content.innerHTML = `
+      <h2 style="margin-top: 0; color: var(--cb-ink); font-family: 'Archivo Narrow', sans-serif; font-size: 1.5rem; margin-bottom: 1rem;">
+        ${systemInfo[mode].title}
+      </h2>
+      <div style="color: var(--cb-ink); line-height: 1.6;">
+        ${systemInfo[mode].content}
+      </div>
+    `;
+    panel.style.display = 'block';
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function showConfigPanel() {
+  const panel = document.getElementById('info-panel');
+  const content = document.getElementById('info-content');
+  
+  content.innerHTML = `
+    <h2 style="margin-top: 0; color: var(--cb-ink); font-family: 'Archivo Narrow', sans-serif; font-size: 1.5rem; margin-bottom: 1rem;">
+      ⚙️ BMPLUS-3000 Configuration
+    </h2>
+    <div style="color: var(--cb-ink); line-height: 1.6;">
+      
+      <h3>DIP Switches</h3>
+      <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--cb-grid);">
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Switch</th>
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Position</th>
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW1 – System Type</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">HP (ON)</td>
+            <td style="padding: 0.5rem;">For heat pump operation</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW2 – Reversing Valve</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">O</td>
+            <td style="padding: 0.5rem;">Energize in cool</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW3 – Dual Fuel Control</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">OFF</td>
+            <td style="padding: 0.5rem;">Ecobee handles balance</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW4 – Fan in Heat</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">HVAC</td>
+            <td style="padding: 0.5rem;">Furnace controls blower</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW5 – 2-Stage Compressor</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">OFF</td>
+            <td style="padding: 0.5rem;">Single-stage system</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW6 – Purge</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">ON</td>
+            <td style="padding: 0.5rem;">60–90 s post-run fan</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW7 – Zones</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">2</td>
+            <td style="padding: 0.5rem;">Two-zone configuration</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW8 – Stage Delay</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">OFF</td>
+            <td style="padding: 0.5rem;">Let Ecobee manage</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">SW9 – Aux Heat Type</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">GAS</td>
+            <td style="padding: 0.5rem;">Propane furnace</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem; font-weight: 600;">SW10 – Continuous Fan</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert);">OFF</td>
+            <td style="padding: 0.5rem;">Ecobee manages circulation</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 2rem;">Potentiometer Settings</h3>
+      
+      <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--cb-grid);">
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Potentiometer</th>
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Scale Range</th>
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Function</th>
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Recommended Setting</th>
+            <th style="text-align: left; padding: 0.5rem; color: var(--cb-ink);">Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">POT 1</td>
+            <td style="padding: 0.5rem; font-family: monospace; font-size: 0.75rem;">OFF, 7, 14, 21, 28, 35, 42</td>
+            <td style="padding: 0.5rem;">Staging timer (minutes before AUX)</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert); font-weight: 600;">42 (max)</td>
+            <td style="padding: 0.5rem;">Disables BMPLUS staging - Ecobee controls</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">POT 2</td>
+            <td style="padding: 0.5rem; font-family: monospace; font-size: 0.75rem;">34, 37, 40, 43, 46, 49, 52</td>
+            <td style="padding: 0.5rem;">Low temp limit (°F) - Compressor lockout</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert); font-weight: 600;">34 (min)</td>
+            <td style="padding: 0.5rem;">Ecobee decides balance point via internet weather</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--cb-grid);">
+            <td style="padding: 0.5rem; font-weight: 600;">POT 3</td>
+            <td style="padding: 0.5rem; font-family: monospace; font-size: 0.75rem;">110, 120, 130, 140, 150, 160, 170</td>
+            <td style="padding: 0.5rem;">High temp limit (°F) - Compressor re-enable</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert); font-weight: 600;">170 (max)</td>
+            <td style="padding: 0.5rem;">Prevents premature lockout</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem; font-weight: 600;">POT 4</td>
+            <td style="padding: 0.5rem; font-family: monospace; font-size: 0.75rem;">5, 12, 19, 26, 33, 40, 47</td>
+            <td style="padding: 0.5rem;">2nd stage differential (°F drop before AUX)</td>
+            <td style="padding: 0.5rem; color: var(--cb-alert); font-weight: 600;">47 (max)</td>
+            <td style="padding: 0.5rem;">Avoids redundant staging - Ecobee controls</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(205, 39, 48, 0.1); border-left: 3px solid var(--cb-alert);">
+        <h4 style="margin: 0 0 0.5rem 0; color: var(--cb-alert);">⚠️ WiFi Backup Configuration</h4>
+        <p style="margin: 0.5rem 0; font-size: 0.9rem;">Since your Ecobee uses internet weather data (no outdoor sensor), consider these backup settings if WiFi reliability is a concern:</p>
+        <ul style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.88rem;">
+          <li style="margin: 0.5rem 0;"><strong>POT 1:</strong> Set to 14-21 minutes — BMPLUS will stage to AUX if heat pump runs too long without satisfying</li>
+          <li style="margin: 0.5rem 0;"><strong>POT 2:</strong> Consider adding outdoor air sensor to BMPLUS OAS terminals, then set to your balance point (e.g., 40°F)</li>
+          <li style="margin: 0.5rem 0;"><strong>POT 4:</strong> Set to 5-12°F — BMPLUS stages to AUX if indoor temp drops significantly below setpoint</li>
+        </ul>
+        <p style="margin: 0.5rem 0; font-size: 0.85rem; font-style: italic;">Without an outdoor sensor on BMPLUS, POT 2 won't provide compressor lockout protection during WiFi outages.</p>
+      </div>
+      
+    </div>
+  `;
+  panel.style.display = 'block';
+}
+
+window.showConfigPanel = showConfigPanel;
+
+// Highlight path functions
+function highlightCustomPath(edgeIds, description, infoMode) {
+  const highlightEdgeIds = new Set(edgeIds);
+  const highlightNodeIds = new Set();
+  
+  // Find all nodes involved in the highlighted edges
+  initialEdges.forEach(edge => {
+    if (highlightEdgeIds.has(edge.id)) {
+      highlightNodeIds.add(edge.source);
+      highlightNodeIds.add(edge.target);
+    }
+  });
+  
+  // Update edges styling
+  const updatedEdges = initialEdges.map(edge => ({
+    ...edge,
+    style: {
+      ...edge.style,
+      strokeWidth: highlightEdgeIds.has(edge.id) ? 4 : 2,
+      opacity: highlightEdgeIds.has(edge.id) ? 1 : 0.2
+    },
+    animated: highlightEdgeIds.has(edge.id)
+  }));
+  
+  // Update nodes styling - preserve positions and data
+  const updatedNodes = (window.currentNodes || initialNodes).map(node => ({
+    ...node,
+    style: {
+      ...node.style,
+      opacity: highlightNodeIds.has(node.id) ? 1 : 0.3
+    }
+  }));
+  
+  // Update state instead of re-rendering
+  if (window.flowSetEdges && window.flowSetNodes) {
+    window.flowSetEdges(updatedEdges);
+    window.flowSetNodes(updatedNodes);
+  }
+  
+  window.currentEdges = updatedEdges;
+  window.currentNodes = updatedNodes;
+  
+  if (infoMode) {
+    showInfoPanel(infoMode);
+  }
+  
+  if (description) {
+    console.log(`Highlighted: ${description}`);
+  }
+}
+
+// Global functions accessible from toolbar buttons
+window.callHeat = (zone) => {
+  const heatingEdges = zone === 'Z1' 
+    ? ['e3', 'e4', 'e7', 'e7a', 'e8', 'e8a', 'e8b', 'e12', 'e13', 'e19', 'e20', 'e21'] 
+    : ['e5', 'e6', 'e9', 'e9a', 'e10', 'e10a', 'e10b', 'e12', 'e13', 'e22', 'e23'];
+  highlightCustomPath(heatingEdges, `${zone} Heating`, 'heat');
+};
+
+window.callCool = (zone) => {
+  const coolingEdges = zone === 'Z1'
+    ? ['e3', 'e4', 'e7', 'e7a', 'e8', 'e8a', 'e11', 'e13', 'e14', 'e19', 'e20', 'e21'] 
+    : ['e5', 'e6', 'e9', 'e9a', 'e10', 'e10a', 'e11', 'e13', 'e14', 'e22', 'e23'];
+  highlightCustomPath(coolingEdges, `${zone} Cooling`, 'cool');
+};
+
+window.callAuxHeat = (zone) => {
+  const auxEdges = zone === 'Z1'
+    ? ['e3', 'e4', 'e7', 'e7a', 'e8b', 'e12a', 'e13', 'e19', 'e20', 'e21'] 
+    : ['e5', 'e6', 'e9', 'e9a', 'e10b', 'e12a', 'e13', 'e22', 'e23'];
+  highlightCustomPath(auxEdges, `${zone} Aux Heat`, 'aux');
+};
+
+window.callDehumidify = (zone) => {
+  if (zone === 'Z2') {
+    highlightCustomPath(['e5', 'e6', 'e15', 'e16', 'e17', 'e18'], 'Z2 Dehumidifier', 'dehumidify');
+  }
+};
+
+function highlightPath(pathType) {
+  const pathMap = {
+    power: ['e1', 'e2', 'e3', 'e4', 'e5', 'e6'],
+    cooling: ['e7', 'e9', 'e11', 'e13', 'e14'],
+    heating: ['e8', 'e10', 'e12', 'e13'],
+    dehumidify: ['e15', 'e16', 'e17', 'e18']
+  };
+  
+  const edgeIds = pathMap[pathType] || [];
+  highlightCustomPath(edgeIds, pathType);
+}
+
+function resetHighlight() {
+  window.currentEdges = initialEdges;
+  window.currentNodes = initialNodes;
+  
+  // Update state instead of re-rendering
+  if (window.flowSetEdges && window.flowSetNodes) {
+    window.flowSetEdges(initialEdges);
+    window.flowSetNodes(initialNodes);
+  }
+  
+  // Hide info panel
+  showInfoPanel(null);
+}
+
+document.getElementById('highlightPower').addEventListener('click', () => highlightPath('power'));
+document.getElementById('highlightCooling').addEventListener('click', () => highlightPath('cooling'));
+document.getElementById('highlightHeating').addEventListener('click', () => highlightPath('heating'));
+document.getElementById('highlightDehumid').addEventListener('click', () => highlightPath('dehumidify'));
+document.getElementById('resetBtn').addEventListener('click', resetHighlight);
+
+// Render the app
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(h(Flow));
+</script>
+</body>
+</html>
