@@ -43,46 +43,7 @@ h2{font-size:22px;margin:1.2em 0 .4em}
   background: #0b1328;
   border: 1px solid #223;
   border-radius: 12px;
-}
-
-/* React Flow overrides for dark theme */
-.react-flow__node {
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.react-flow__edge-path {
-  stroke-width: 3;
-}
-
-.react-flow__edge-text {
-  font-size: 10px;
-  fill: #e8eefc;
-}
-
-.react-flow__controls {
-  background: var(--card);
-  border: 1px solid #223;
-}
-
-.react-flow__controls button {
-  background: var(--card);
-  border-bottom: 1px solid #223;
-  color: var(--ink);
-}
-
-.react-flow__controls button:hover {
-  background: var(--accent);
-  color: #081020;
-}
-
-.react-flow__minimap {
-  background: var(--card);
-  border: 1px solid #223;
-}
-
-.react-flow__background {
-  background: #0b1328;
+  transition: opacity 0.3s ease;
 }
 
 .legend{
@@ -293,182 +254,220 @@ const nodes = new vis.DataSet([
   }
 ]);
 
-// Define edges (connections)
-const initialEdges = [
+// Define edges (connections) for vis-network
+const edges = new vis.DataSet([
   // Power distribution
-  { id: 'e1', source: 'transformer', target: 'panel', sourceHandle: 'r', targetHandle: 'r', label: 'R (24VAC)', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
-  { id: 'e2', source: 'transformer', target: 'panel', sourceHandle: 'c', targetHandle: 'c', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
-  { id: 'e3', source: 'transformer', target: 'ecobeeZ1', label: 'R', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
-  { id: 'e4', source: 'transformer', target: 'ecobeeZ1', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
-  { id: 'e5', source: 'transformer', target: 'ecobeeZ2', label: 'R', type: 'smoothstep', animated: false, style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'hot', group: 'power' } },
-  { id: 'e6', source: 'transformer', target: 'ecobeeZ2', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'power' } },
+  { id: 'e1', from: 'transformer', to: 'panel', label: 'R (24VAC)', color: { color: edgeColors.hot }, width: 3, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'hot', group: 'power', smooth: { type: 'cubicBezier' } },
+  { id: 'e2', from: 'transformer', to: 'panel', label: 'C', color: { color: edgeColors.common }, width: 3, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'common', group: 'power', smooth: { type: 'cubicBezier' } },
+  { id: 'e3', from: 'transformer', to: 'ecobeeZ1', label: 'R', color: { color: edgeColors.hot }, width: 3, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'hot', group: 'power', smooth: { type: 'cubicBezier' } },
+  { id: 'e4', from: 'transformer', to: 'ecobeeZ1', label: 'C', color: { color: edgeColors.common }, width: 3, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'common', group: 'power', smooth: { type: 'cubicBezier' } },
+  { id: 'e5', from: 'transformer', to: 'ecobeeZ2', label: 'R', color: { color: edgeColors.hot }, width: 3, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'hot', group: 'power', smooth: { type: 'cubicBezier' } },
+  { id: 'e6', from: 'transformer', to: 'ecobeeZ2', label: 'C', color: { color: edgeColors.common }, width: 3, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'common', group: 'power', smooth: { type: 'cubicBezier' } },
   
   // Ecobee HVAC calls
-  { id: 'e7', source: 'ecobeeZ1', target: 'panel', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e8', source: 'ecobeeZ1', target: 'panel', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
-  { id: 'e9', source: 'ecobeeZ2', target: 'panel', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e10', source: 'ecobeeZ2', target: 'panel', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
+  { id: 'e7', from: 'ecobeeZ1', to: 'panel', label: 'Y1', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'cooling', smooth: { type: 'cubicBezier' } },
+  { id: 'e8', from: 'ecobeeZ1', to: 'panel', label: 'W1', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'heating', smooth: { type: 'cubicBezier' } },
+  { id: 'e9', from: 'ecobeeZ2', to: 'panel', label: 'Y1', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'cooling', smooth: { type: 'cubicBezier' } },
+  { id: 'e10', from: 'ecobeeZ2', to: 'panel', label: 'W1', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'heating', smooth: { type: 'cubicBezier' } },
   
   // Panel to equipment
-  { id: 'e11', source: 'panel', target: 'equipment', label: 'Y1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e12', source: 'panel', target: 'equipment', label: 'W1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'heating' } },
-  { id: 'e13', source: 'panel', target: 'equipment', label: 'G', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
-  { id: 'e14', source: 'panel', target: 'equipment', label: 'O', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'cooling' } },
+  { id: 'e11', from: 'panel', to: 'equipment', label: 'Y1', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'cooling', smooth: { type: 'cubicBezier' } },
+  { id: 'e12', from: 'panel', to: 'equipment', label: 'W1', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'heating', smooth: { type: 'cubicBezier' } },
+  { id: 'e13', from: 'panel', to: 'equipment', label: 'G', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'cooling', smooth: { type: 'cubicBezier' } },
+  { id: 'e14', from: 'panel', to: 'equipment', label: 'O', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'cooling', smooth: { type: 'cubicBezier' } },
   
   // Dehumidify path
-  { id: 'e15', source: 'ecobeeZ2', target: 'relay', label: 'ACC+', type: 'smoothstep', animated: false, style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'signal', group: 'dehumidify' } },
-  { id: 'e16', source: 'panel', target: 'relay', label: 'C', type: 'smoothstep', animated: false, style: { stroke: edgeColors.common, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'common', group: 'dehumidify' } },
-  { id: 'e17', source: 'relay', target: 'dehumidifier', label: 'D1', type: 'smoothstep', animated: false, style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'dry-contact', group: 'dehumidify' } },
-  { id: 'e18', source: 'relay', target: 'dehumidifier', label: 'D2', type: 'smoothstep', animated: false, style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'dry-contact', group: 'dehumidify' } },
+  { id: 'e15', from: 'ecobeeZ2', to: 'relay', label: 'ACC+', color: { color: edgeColors.signal }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'signal', group: 'dehumidify', smooth: { type: 'cubicBezier' } },
+  { id: 'e16', from: 'panel', to: 'relay', label: 'C', color: { color: edgeColors.common }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'common', group: 'dehumidify', smooth: { type: 'cubicBezier' } },
+  { id: 'e17', from: 'relay', to: 'dehumidifier', label: 'D1', color: { color: edgeColors['dry-contact'] }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'dry-contact', group: 'dehumidify', dashes: [5, 5], smooth: { type: 'cubicBezier' } },
+  { id: 'e18', from: 'relay', to: 'dehumidifier', label: 'D2', color: { color: edgeColors['dry-contact'] }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'dry-contact', group: 'dehumidify', dashes: [5, 5], smooth: { type: 'cubicBezier' } },
   
   // Zone damper control
-  { id: 'e19', source: 'panel', target: 'damper1', label: 'M1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
-  { id: 'e20', source: 'panel', target: 'damper1', label: 'M4', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
-  { id: 'e21', source: 'panel', target: 'damper1', label: 'M6', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone1' } },
-  { id: 'e22', source: 'panel', target: 'damper2', label: 'M1', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone2' } },
-  { id: 'e23', source: 'panel', target: 'damper2', label: 'M4', type: 'smoothstep', animated: false, style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, data: { wireType: 'damper', group: 'zone2' } }
-];
+  { id: 'e19', from: 'panel', to: 'damper1', label: 'M1', color: { color: edgeColors.damper }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'damper', group: 'zone1', smooth: { type: 'cubicBezier' } },
+  { id: 'e20', from: 'panel', to: 'damper1', label: 'M4', color: { color: edgeColors.damper }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'damper', group: 'zone1', smooth: { type: 'cubicBezier' } },
+  { id: 'e21', from: 'panel', to: 'damper1', label: 'M6', color: { color: edgeColors.damper }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'damper', group: 'zone1', smooth: { type: 'cubicBezier' } },
+  { id: 'e22', from: 'panel', to: 'damper2', label: 'M1', color: { color: edgeColors.damper }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'damper', group: 'zone2', smooth: { type: 'cubicBezier' } },
+  { id: 'e23', from: 'panel', to: 'damper2', label: 'M4', color: { color: edgeColors.damper }, width: 2.5, font: { color: '#e8eefc', size: 10, bold: true }, wireType: 'damper', group: 'zone2', smooth: { type: 'cubicBezier' } }
+]);
 
-function Flow() {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
-  const [rfInstance, setRfInstance] = useState(null);
+// vis-network configuration options
+const options = {
+  layout: {
+    improvedLayout: false
+  },
+  physics: {
+    enabled: false
+  },
+  interaction: {
+    dragNodes: true,
+    dragView: true,
+    zoomView: true,
+    tooltipDelay: 100
+  },
+  nodes: {
+    chosen: {
+      node: function(values, id, selected, hovering) {
+        if (selected || hovering) {
+          values.borderWidth = 2;
+          values.borderColor = '#7aa2ff';
+        }
+      }
+    }
+  },
+  edges: {
+    chosen: {
+      edge: function(values, id, selected, hovering) {
+        if (selected || hovering) {
+          values.width = values.width * 1.5;
+        }
+      }
+    }
+  }
+};
 
-  const onNodesChange = useCallback((changes) => {
-    setNodes((nds) => ReactFlowLib.applyNodeChanges(changes, nds));
-  }, []);
+// Store original edge data for reset
+const originalEdgesData = edges.get();
 
-  const onEdgesChange = useCallback((changes) => {
-    setEdges((eds) => ReactFlowLib.applyEdgeChanges(changes, eds));
-  }, []);
+// Initialize the network
+let network = null;
 
-  const onInit = useCallback((instance) => {
-    setRfInstance(instance);
-    setTimeout(() => instance.fitView(), 100);
-  }, []);
-
-  // Export layout
-  window.exportLayout = useCallback(() => {
-    const layout = {
-      components: {},
-      edges: edges.map(e => ({
-        from: e.source,
-        to: e.target,
-        type: e.data.wireType,
-        group: e.data.group,
-        label: e.label
-      }))
+// Export layout function
+window.exportLayout = function() {
+  const positions = network.getPositions();
+  const layout = {
+    components: {},
+    edges: originalEdgesData.map(e => ({
+      from: e.from,
+      to: e.to,
+      type: e.wireType,
+      group: e.group,
+      label: e.label
+    }))
+  };
+  
+  nodes.forEach(node => {
+    const pos = positions[node.id] || { x: node.x, y: node.y };
+    layout.components[node.id] = {
+      x: pos.x,
+      y: pos.y,
+      type: node.group,
+      label: node.label
     };
-    
-    nodes.forEach(node => {
-      layout.components[node.id] = {
-        x: node.position.x,
-        y: node.position.y,
-        type: node.data.nodeType,
-        label: node.data.label
-      };
-    });
-    
-    const json = JSON.stringify(layout, null, 2);
-    
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'hvac-reactflow-layout.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    console.log("=== React Flow Layout ===");
-    console.log(json);
-    alert("Layout exported! Check downloads and console.");
-  }, [nodes, edges]);
-
-  window.fitView = useCallback(() => {
-    if (rfInstance) rfInstance.fitView();
-  }, [rfInstance]);
-
-  window.highlightPath = useCallback((group) => {
-    // Highlight edges
-    setEdges(initialEdges.map(edge => {
-      if (edge.data.group === group) {
-        return {
-          ...edge,
-          animated: true,
-          style: { ...edge.style, strokeWidth: 5, stroke: '#fcd34d' }
-        };
-      } else {
-        return {
-          ...edge,
-          style: { ...edge.style, opacity: 0.2 }
-        };
-      }
-    }));
-    
-    // Highlight nodes
-    const relevantNodes = new Set();
-    initialEdges.forEach(edge => {
-      if (edge.data.group === group) {
-        relevantNodes.add(edge.source);
-        relevantNodes.add(edge.target);
-      }
-    });
-    
-    setNodes(initialNodes.map(node => {
-      if (relevantNodes.has(node.id)) {
-        return node;
-      } else {
-        return {
-          ...node,
-          style: { ...node.style, opacity: 0.3 }
-        };
-      }
-    }));
-  }, []);
-
-  window.resetHighlight = useCallback(() => {
-    setEdges(initialEdges);
-    setNodes(initialNodes);
-  }, []);
-
-  return React.createElement(ReactFlow, {
-    nodes: nodes,
-    edges: edges,
-    onNodesChange: onNodesChange,
-    onEdgesChange: onEdgesChange,
-    onInit: onInit,
-    fitView: true,
-    minZoom: 0.2,
-    maxZoom: 2,
-    defaultEdgeOptions: {
-      type: 'smoothstep'
-    },
-    children: [
-      React.createElement(Controls, { key: 'controls' }),
-      React.createElement(Background, { key: 'background', color: '#223', gap: 16 }),
-      React.createElement(MiniMap, { 
-        key: 'minimap',
-        nodeColor: (node) => node.style.background,
-        maskColor: 'rgba(11, 19, 40, 0.8)'
-      })
-    ]
   });
-}
+  
+  const json = JSON.stringify(layout, null, 2);
+  
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'hvac-visnetwork-layout.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  console.log("=== vis-network Layout ===");
+  console.log(json);
+  alert("Layout exported! Check downloads and console.");
+};
 
-// Setup button handlers
+// Fit view function
+window.fitView = function() {
+  if (network) {
+    network.fit({
+      animation: {
+        duration: 500,
+        easingFunction: 'easeInOutQuad'
+      }
+    });
+  }
+};
+
+// Highlight path function
+window.highlightPath = function(group) {
+  const edgesData = edges.get();
+  const relevantNodes = new Set();
+  
+  // Update edges
+  edgesData.forEach(edge => {
+    if (edge.group === group) {
+      relevantNodes.add(edge.from);
+      relevantNodes.add(edge.to);
+      edges.update({
+        id: edge.id,
+        width: 5,
+        color: { color: '#fcd34d' }
+      });
+    } else {
+      edges.update({
+        id: edge.id,
+        opacity: 0.2,
+        color: { 
+          color: edge.color.color,
+          opacity: 0.2
+        }
+      });
+    }
+  });
+  
+  // Update nodes
+  const nodesData = nodes.get();
+  nodesData.forEach(node => {
+    if (!relevantNodes.has(node.id)) {
+      nodes.update({
+        id: node.id,
+        opacity: 0.3
+      });
+    }
+  });
+};
+
+// Reset highlight function
+window.resetHighlight = function() {
+  // Reset edges to original data
+  edges.clear();
+  edges.add(originalEdgesData);
+  
+  // Reset nodes opacity
+  const nodesData = nodes.get();
+  nodesData.forEach(node => {
+    nodes.update({
+      id: node.id,
+      opacity: 1.0
+    });
+  });
+};
+
+// Setup button handlers and initialize network
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('exportBtn').addEventListener('click', () => window.exportLayout());
-  document.getElementById('fitViewBtn').addEventListener('click', () => window.fitView());
+  const container = document.getElementById('root');
+  
+  // Initialize network
+  network = new vis.Network(container, { nodes: nodes, edges: edges }, options);
+  
+  // Fit view after initialization
+  network.once('stabilizationIterationsDone', function() {
+    network.fit();
+  });
+  
+  // Add stabilization start/end event handlers to prevent flickering
+  network.on('stabilizationProgress', function(params) {
+    const widthFactor = params.iterations/params.total;
+    container.style.opacity = Math.max(0.3, widthFactor);
+  });
+  
+  network.on('stabilizationIterationsDone', function() {
+    container.style.opacity = 1.0;
+  });
+  
+  // Setup button handlers
+  document.getElementById('exportBtn').addEventListener('click', window.exportLayout);
+  document.getElementById('fitViewBtn').addEventListener('click', window.fitView);
   document.getElementById('highlightDehumid').addEventListener('click', () => window.highlightPath('dehumidify'));
   document.getElementById('highlightCooling').addEventListener('click', () => window.highlightPath('cooling'));
   document.getElementById('highlightHeating').addEventListener('click', () => window.highlightPath('heating'));
   document.getElementById('highlightPower').addEventListener('click', () => window.highlightPath('power'));
-  document.getElementById('resetBtn').addEventListener('click', () => window.resetHighlight());
+  document.getElementById('resetBtn').addEventListener('click', window.resetHighlight);
 });
-
-// Render the app
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(Flow));
 </script>
 </body>
 </html>
