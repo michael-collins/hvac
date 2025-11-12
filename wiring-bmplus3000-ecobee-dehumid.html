@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wiring — BMPLUS‑3000, Ecobee, GeneralAire (Zone 2 Only)</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#0f1830; --ink:#e8eefc; --muted:#9bb0d6; --accent:#7aa2ff; --good:#6ee7a1; --warn:#fcd34d; --bad:#fca5a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:980px;margin:0 auto;padding:32px}
+.nav{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.nav a{background:var(--card);padding:10px 14px;border-radius:12px;border:1px solid #223;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.card{background:var(--card);border:1px solid #223;border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+h1{font-size:28px;margin:.2em 0 0.2em}
+h2{font-size:22px;margin:1.2em 0 .4em}
+h3{font-size:18px;margin:1em 0 .4em}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0b1328;padding:2px 6px;border-radius:6px;border:1px solid #223}
+pre{background:#0b1328;border:1px solid #223;border-radius:12px;padding:14px;overflow:auto}
+.table{width:100%;border-collapse:collapse;background:#0b1328;border-radius:12px;overflow:hidden;margin:10px 0}
+.table th,.table td{padding:10px;border-bottom:1px solid #223}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #223;background:#0b1328;color:var(--muted)}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:8px}
+.hr{height:1px;background:#223;margin:16px 0}
+.note{color:var(--muted)}
+.callout{border-left:4px solid var(--accent);padding:10px 12px;background:#0b1328;border-radius:8px}
+.ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+.btn{display:inline-block;background:var(--accent);color:#081020;padding:10px 14px;border-radius:10px;font-weight:600}
+svg{max-width:100%;height:auto;display:block;background:#0b1328;border-radius:12px;border:1px solid #223;padding:10px}
+.footer{margin-top:32px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Wiring — BMPLUS‑3000 ↔ Ecobee ↔ GeneralAire (Zone 2 Only Dehumid)</h1>
+  <div class="card">
+    <h2>Overview</h2>
+    <div class="callout">
+      Zone 2 (basement) Ecobee controls humidity. On a dehumidify call, the GeneralAire runs (D1↔D2 closed), the blower starts, Zone 2 damper opens, Zone 1 damper closes.
+    </div>
+    <p class="note">Assumes GeneralAire control terminals are <code>D1</code> and <code>D2</code> (dry contact), plus RF/GF/GT not used.</p>
+  </div>
+
+  <div class="card">
+    <h2>Terminal Map</h2>
+    <table class="table">
+      <tr><th>Device</th><th>Terminal</th><th>Connect To</th><th>Notes</th></tr>
+      <tr><td>Ecobee Z2</td><td>ACC+</td><td>BMPLUS‑3000 (or relay coil +)</td><td>Dehumidify call signal</td></tr>
+      <tr><td>Ecobee Z2</td><td>C</td><td>C common bus</td><td>Shared common with panel & dehumidifier</td></tr>
+      <tr><td>GeneralAire</td><td>D1</td><td>Relay NO → COM to D2 (closed on DH)</td><td>Close D1–D2 to run</td></tr>
+      <tr><td>GeneralAire</td><td>D2</td><td>Relay COM → to D1 when active</td><td>Dry contact</td></tr>
+      <tr><td>Zone 1 Damper</td><td>M1</td><td>Relay COM</td><td>Common</td></tr>
+      <tr><td>Zone 1 Damper</td><td>M4</td><td>Relay NO (energize to CLOSE)</td><td>Force closed during DH</td></tr>
+      <tr><td>Zone 2 Damper</td><td>M1</td><td>Relay COM</td><td>Common</td></tr>
+      <tr><td>Zone 2 Damper</td><td>M6</td><td>Relay NO (energize to OPEN)</td><td>Force open during DH</td></tr>
+    </table>
+    <p class="note">Use an isolation relay such as <strong>RIBU1C</strong> (coil: 24VAC) to switch damper overrides and D1/D2.</p>
+  </div>
+
+  <div class="card">
+    <h2>SVG Wiring Diagram</h2>
+    <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring Diagram">
+      <style>
+        .box{fill:#0e1530;stroke:#314;stroke-width:2;rx:12;ry:12}
+        .wire{stroke:#7aa2ff;stroke-width:2}
+        .wire2{stroke:#6ee7a1;stroke-width:2;stroke-dasharray:6 4}
+        .label{fill:#e8eefc;font:14px sans-serif}
+        .title{fill:#9bb0d6;font:700 16px sans-serif}
+      </style>
+      <!-- BMPLUS-3000 -->
+      <rect class="box" x="40" y="40" width="220" height="200"/>
+      <text class="title" x="60" y="62">BMPLUS‑3000 (Zone Panel)</text>
+      <text class="label" x="60" y="90">R  C  Y1  G  O  W1</text>
+      <text class="label" x="60" y="112">Z1: M1 M4 M6</text>
+      <text class="label" x="60" y="134">Z2: M1 M4 M6</text>
+
+      <!-- Ecobee Zone 2 -->
+      <rect class="box" x="40" y="280" width="220" height="120"/>
+      <text class="title" x="60" y="302">Ecobee (Zone 2)</text>
+      <text class="label" x="60" y="330">ACC+  C</text>
+
+      <!-- RIB Relay -->
+      <rect class="box" x="300" y="120" width="200" height="160"/>
+      <text class="title" x="320" y="142">Isolation Relay (RIBU1C)</text>
+      <text class="label" x="320" y="166">Coil: + −</text>
+      <text class="label" x="320" y="188">Contacts: COM / NO</text>
+
+      <!-- GeneralAire -->
+      <rect class="box" x="560" y="40" width="200" height="120"/>
+      <text class="title" x="580" y="62">GeneralAire</text>
+      <text class="label" x="580" y="90">D1  D2</text>
+
+      <!-- Dampers -->
+      <rect class="box" x="560" y="220" width="180" height="80"/>
+      <text class="title" x="570" y="242">Zone 1 Damper</text>
+      <text class="label" x="570" y="266">M1  M4  M6</text>
+
+      <rect class="box" x="560" y="340" width="180" height="80"/>
+      <text class="title" x="570" y="362">Zone 2 Damper</text>
+      <text class="label" x="570" y="386">M1  M4  M6</text>
+
+      <!-- Wires -->
+      <line class="wire" x1="150" y1="340" x2="300" y2="180"/> <!-- ACC+ to coil + -->
+      <line class="wire" x1="110" y1="340" x2="300" y2="200"/> <!-- C to coil − -->
+
+      <line class="wire2" x1="500" y1="200" x2="560" y2="90"/> <!-- NO/COM to D1/D2 -->
+      <line class="wire2" x1="500" y1="220" x2="560" y2="110"/>
+
+      <line class="wire" x1="240" y1="160" x2="560" y2="260"/> <!-- Z1 M1 -> COM -->
+      <line class="wire" x1="240" y1="170" x2="560" y2="280"/> <!-- Z1 M4 -> NO -->
+
+      <line class="wire" x1="240" y1="190" x2="560" y2="380"/> <!-- Z2 M1 -> COM -->
+      <line class="wire" x1="240" y1="200" x2="560" y2="400"/> <!-- Z2 M6 -> NO -->
+
+      <text class="label" x="710" y="104">Close D1–D2 to run</text>
+      <text class="label" x="740" y="260">Force CLOSE</text>
+      <text class="label" x="740" y="380">Force OPEN</text>
+    </svg>
+    <p class="note">The relay closes D1–D2 and simultaneously drives dampers to the desired positions only during a dehumidify call from Zone 2.</p>
+  </div>
+
+  <div class="card">
+    <h2>Ecobee Zone 2 Settings</h2>
+    <div class="kv">
+      <div>Dehumidify</div><div>ON</div>
+      <div>Dehumidify With</div><div>Dehumidifier</div>
+      <div>Fan During Dehumidify</div><div><strong>OFF</strong></div>
+      <div>AC Overcool Max</div><div>1°F</div>
+      <div>Humidity Setpoint</div><div>45–50%</div>
+    </div>
+  </div>
+
+  <p><a class="btn" href="index.html">Back</a></p>
+</div>
+</body>
+</html>

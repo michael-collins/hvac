@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Damper Identification — M1 / M2 / M4 / M6</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#0f1830; --ink:#e8eefc; --muted:#9bb0d6; --accent:#7aa2ff; --good:#6ee7a1; --warn:#fcd34d; --bad:#fca5a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:980px;margin:0 auto;padding:32px}
+.nav{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.nav a{background:var(--card);padding:10px 14px;border-radius:12px;border:1px solid #223;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.card{background:var(--card);border:1px solid #223;border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+h1{font-size:28px;margin:.2em 0 0.2em}
+h2{font-size:22px;margin:1.2em 0 .4em}
+h3{font-size:18px;margin:1em 0 .4em}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0b1328;padding:2px 6px;border-radius:6px;border:1px solid #223}
+pre{background:#0b1328;border:1px solid #223;border-radius:12px;padding:14px;overflow:auto}
+.table{width:100%;border-collapse:collapse;background:#0b1328;border-radius:12px;overflow:hidden;margin:10px 0}
+.table th,.table td{padding:10px;border-bottom:1px solid #223}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #223;background:#0b1328;color:var(--muted)}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:8px}
+.hr{height:1px;background:#223;margin:16px 0}
+.note{color:var(--muted)}
+.callout{border-left:4px solid var(--accent);padding:10px 12px;background:#0b1328;border-radius:8px}
+.ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+.btn{display:inline-block;background:var(--accent);color:#081020;padding:10px 14px;border-radius:10px;font-weight:600}
+svg{max-width:100%;height:auto;display:block;background:#0b1328;border-radius:12px;border:1px solid #223;padding:10px}
+.footer{margin-top:32px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Damper Identification — M1 / M2 / M4 / M6 (EWC UltraZone)</h1>
+
+  <div class="card">
+    <h2>What the panel terminals usually mean</h2>
+    <table class="table">
+      <tr><th>Terminal</th><th>Typical Function</th><th>Note</th></tr>
+      <tr><td>M1</td><td><strong>Common</strong> (24VAC common to damper motors)</td><td>Return for motor power</td></tr>
+      <tr><td>M4</td><td><strong>Drive to CLOSE</strong></td><td>Apply 24VAC between M1 and M4 to close</td></tr>
+      <tr><td>M6</td><td><strong>Drive to OPEN</strong></td><td>Apply 24VAC between M1 and M6 to open</td></tr>
+      <tr><td>M2</td><td>(Not used on your panel labels)</td><td>Some panels use for end‑switch/feedback</td></tr>
+    </table>
+    <p class="note">Your reported wiring matches this: Zone 1 → M1 (white), M6 (red); Zone 2 → M1 (white), M4 (blue), M6 (red).</p>
+  </div>
+
+  <div class="card">
+    <h2>Safe 10‑Second Verification</h2>
+    <ol>
+      <li>Turn system power <strong>OFF</strong>.</li>
+      <li>Label current wires on Z1/Z2 M1/M4/M6.</li>
+      <li>Power ON, then momentarily jump 24VAC from panel <code>R</code> to <code>M6</code> with <code>M1</code> as common: damper should OPEN.</li>
+      <li>Momentarily jump 24VAC from panel <code>R</code> to <code>M4</code> with <code>M1</code> as common: damper should CLOSE.</li>
+    </ol>
+    <p class="note">Only do quick taps (1–2 seconds). Do not hold power on motors when end‑stops are reached.</p>
+  </div>
+
+  <div class="card">
+    <h2>Zone‑2‑Only Dehumid Application</h2>
+    <p>During a dehumidify call, we want Z2 damper OPEN and Z1 damper CLOSED. The isolation relay will momentarily energize M6 (Z2) and M4 (Z1) to position the dampers.</p>
+  </div>
+
+  <p><a class="btn" href="index.html">Back</a></p>
+</div>
+</body>
+</html>

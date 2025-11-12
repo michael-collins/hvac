@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HVAC Zoning & Dehumid — Reference</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#0f1830; --ink:#e8eefc; --muted:#9bb0d6; --accent:#7aa2ff; --good:#6ee7a1; --warn:#fcd34d; --bad:#fca5a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:980px;margin:0 auto;padding:32px}
+.nav{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.nav a{background:var(--card);padding:10px 14px;border-radius:12px;border:1px solid #223;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.card{background:var(--card);border:1px solid #223;border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+h1{font-size:28px;margin:.2em 0 0.2em}
+h2{font-size:22px;margin:1.2em 0 .4em}
+h3{font-size:18px;margin:1em 0 .4em}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0b1328;padding:2px 6px;border-radius:6px;border:1px solid #223}
+pre{background:#0b1328;border:1px solid #223;border-radius:12px;padding:14px;overflow:auto}
+.table{width:100%;border-collapse:collapse;background:#0b1328;border-radius:12px;overflow:hidden;margin:10px 0}
+.table th,.table td{padding:10px;border-bottom:1px solid #223}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #223;background:#0b1328;color:var(--muted)}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:8px}
+.hr{height:1px;background:#223;margin:16px 0}
+.note{color:var(--muted)}
+.callout{border-left:4px solid var(--accent);padding:10px 12px;background:#0b1328;border-radius:8px}
+.ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+.btn{display:inline-block;background:var(--accent);color:#081020;padding:10px 14px;border-radius:10px;font-weight:600}
+svg{max-width:100%;height:auto;display:block;background:#0b1328;border-radius:12px;border:1px solid #223;padding:10px}
+.footer{margin-top:32px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>HVAC Zoning & Dehumid — Reference (BMPLUS‑3000 + Ecobee + GeneralAire)</h1>
+  <p class="note">Quick reference site for your setup: two zones, Rheem RP14 + propane aux, GeneralAire dehumidifier (D1/D2), Ecobee Enhanced (Zone 1) & Premium (Zone 2).</p>
+  <nav class="nav">
+    <a href="wiring-bmplus3000-ecobee-dehumid.html">Wiring: BMPLUS-3000 ↔ Ecobee ↔ Dehumid (Zone 2 only)</a>
+    <a href="power-stability-ups-transformer.html">Power Stability: UPS + Dedicated 24VAC Transformer</a>
+    <a href="troubleshooting-flowchart.html">Troubleshooting Flowchart</a>
+    <a href="damper-identification.html">Damper Identification (M1/M2/M4/M6)</a>
+  </nav>
+
+  <div class="card">
+    <h2>What’s inside</h2>
+    <ul>
+      <li>Clean wiring maps with SVG diagrams</li>
+      <li>Exact terminal mappings for Ecobee, BMPLUS‑3000, GeneralAire (D1/D2)</li>
+      <li>Zone‑2‑only dehumidification logic with damper overrides</li>
+      <li>Brownout resilience plan (small UPS + dedicated control transformer)</li>
+      <li>Step‑by‑step troubleshooting</li>
+    </ul>
+  </div>
+
+  <div class="footer">Generated for your GitHub Pages. You can rename files as needed.</div>
+</div>
+<script>
+document.querySelectorAll('[data-toggle]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const id = btn.getAttribute('data-toggle');
+    const el = document.getElementById(id);
+    el.hidden = !el.hidden;
+    btn.innerText = (el.hidden? 'Show' : 'Hide') + ' ' + (btn.dataset.label || 'details');
+  });
+});
+</script>
+</body>
+</html>

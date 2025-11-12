@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Troubleshooting Flowchart — Zone 2 Only Dehumid</title>
+<style>
+:root{
+  --bg:#0b1220; --card:#0f1830; --ink:#e8eefc; --muted:#9bb0d6; --accent:#7aa2ff; --good:#6ee7a1; --warn:#fcd34d; --bad:#fca5a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:980px;margin:0 auto;padding:32px}
+.nav{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.nav a{background:var(--card);padding:10px 14px;border-radius:12px;border:1px solid #223;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.card{background:var(--card);border:1px solid #223;border-radius:16px;padding:20px;margin:16px 0;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+h1{font-size:28px;margin:.2em 0 0.2em}
+h2{font-size:22px;margin:1.2em 0 .4em}
+h3{font-size:18px;margin:1em 0 .4em}
+code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#0b1328;padding:2px 6px;border-radius:6px;border:1px solid #223}
+pre{background:#0b1328;border:1px solid #223;border-radius:12px;padding:14px;overflow:auto}
+.table{width:100%;border-collapse:collapse;background:#0b1328;border-radius:12px;overflow:hidden;margin:10px 0}
+.table th,.table td{padding:10px;border-bottom:1px solid #223}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #223;background:#0b1328;color:var(--muted)}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:8px}
+.hr{height:1px;background:#223;margin:16px 0}
+.note{color:var(--muted)}
+.callout{border-left:4px solid var(--accent);padding:10px 12px;background:#0b1328;border-radius:8px}
+.ok{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+.btn{display:inline-block;background:var(--accent);color:#081020;padding:10px 14px;border-radius:10px;font-weight:600}
+svg{max-width:100%;height:auto;display:block;background:#0b1328;border-radius:12px;border:1px solid #223;padding:10px}
+.footer{margin-top:32px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Troubleshooting Flowchart — Zone 2 Only Dehumid</h1>
+  <div class="card">
+    <svg viewBox="0 0 960 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Troubleshooting flowchart">
+      <style>
+        .box{fill:#0e1530;stroke:#314;stroke-width:2;rx:10;ry:10}
+        .label{fill:#e8eefc;font:14px sans-serif} .title{fill:#9bb0d6;font:700 16px sans-serif}
+        .arr{stroke:#7aa2ff;stroke-width:2;marker-end:url(#arrow)}
+      </style>
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill="#7aa2ff"/>
+        </marker>
+      </defs>
+
+      <rect class="box" x="60" y="40" width="360" height="70"/>
+      <text class="title" x="80" y="70">Start: Humidity high?</text>
+      <text class="label" x="80" y="90">If not, system is normal.</text>
+
+      <line class="arr" x1="240" y1="110" x2="240" y2="150"/>
+
+      <rect class="box" x="60" y="150" width="360" height="90"/>
+      <text class="title" x="80" y="180">Force DH call</text>
+      <text class="label" x="80" y="200">Set Z2 humidity to 70% temporarily.</text>
+
+      <line class="arr" x1="240" y1="240" x2="240" y2="280"/>
+
+      <rect class="box" x="60" y="280" width="360" height="90"/>
+      <text class="title" x="80" y="310">Relay click?</text>
+      <text class="label" x="80" y="330">If no click: check ACC+ and C.</text>
+
+      <line class="arr" x1="240" y1="370" x2="240" y2="410"/>
+
+      <rect class="box" x="60" y="410" width="360" height="90"/>
+      <text class="title" x="80" y="440">Dampers move?</text>
+      <text class="label" x="80" y="460">Z1 closes, Z2 opens.</text>
+
+      <line class="arr" x1="240" y1="500" x2="240" y2="540"/>
+
+      <rect class="box" x="60" y="540" width="360" height="90"/>
+      <text class="title" x="80" y="570">GeneralAire runs?</text>
+      <text class="label" x="80" y="590">D1–D2 closed during call.</text>
+
+      <line class="arr" x1="240" y1="630" x2="240" y2="670"/>
+
+      <rect class="box" x="60" y="670" width="360" height="90"/>
+      <text class="title" x="80" y="700">Restore settings</text>
+      <text class="label" x="80" y="720">Return humidity to 45–50%.</text>
+    </svg>
+  </div>
+  <p><a class="btn" href="index.html">Back</a></p>
+</div>
+</body>
+</html>
