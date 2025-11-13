@@ -196,6 +196,7 @@ h2{font-family:var(--cb-font-head);text-transform:var(--cb-tt);letter-spacing:va
 }
 
 .hvac-node.transformer { border-color: #98A5A3; color: #98A5A3; min-height: 100px; }
+.hvac-node.ups { border-color: #9bb0d6; color: #9bb0d6; min-height: 100px; min-width: 180px; font-weight: 600; }
 .hvac-node.panel { border-color: var(--cb-ink); color: var(--cb-ink); min-width: 240px; min-height: 400px; padding: .5rem .7rem; font-weight: 600; }
 .hvac-node.thermostat { border-color: #6ee7a1; color: #6ee7a1; min-width: 150px; min-height: 105px; }
 .hvac-node.relay { border-color: #98A5A3; color: #98A5A3; min-width: 140px; min-height: 105px; }
@@ -226,6 +227,33 @@ h2{font-family:var(--cb-font-head);text-transform:var(--cb-tt);letter-spacing:va
 }
 
 .config-btn:hover {
+  border-color: var(--cb-alert);
+  color: var(--cb-alert);
+  background: rgba(33, 41, 49, 0.95);
+  box-shadow: var(--cb-glow);
+}
+
+/* Menu button in thermostat nodes */
+.menu-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: var(--cb-stroke-1) solid var(--cb-ink-2);
+  padding: 0.2rem 0.4rem;
+  background: rgba(33, 41, 49, 0.8);
+  color: var(--cb-ink-2);
+  font-weight: 600;
+  border-radius: var(--cb-round);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: var(--cb-font-ui);
+  transition: all 0.15s ease;
+  z-index: 10;
+  line-height: 1;
+}
+
+.menu-btn:hover {
   border-color: var(--cb-alert);
   color: var(--cb-alert);
   background: rgba(33, 41, 49, 0.95);

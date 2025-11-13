@@ -11,13 +11,14 @@
 <body>
 <div class="container">
   <h1>HVAC Wiring — React Flow with Multiple Handles</h1>
-  
+  <p><a class="btn" href="index.html">Back</a></p>
   <div class="card">
     <h2>Full System Schematic</h2>
-    <p class="note">Click to select nodes. Drag selected nodes to move them. Drag canvas to pan.</p>
+    <!-- <p class="note">Click to select nodes. Drag selected nodes to move them. Drag canvas to pan.</p> -->
     <div class="controls">
       <button id="exportBtn">💾 Export Layout JSON</button>
       <button id="fitViewBtn">🔍 Fit View</button>
+      <button id="toggleEditBtn">✏️ Toggle Edit Mode</button>
       <button id="highlightPower">⚡ Highlight Power Distribution</button>
       <button id="highlightCooling">❄️ Highlight Cooling Path</button>
       <button id="highlightHeating">🔥 Highlight Heating Path</button>
@@ -32,7 +33,7 @@
     </div>
   </div>
 
-  <p><a class="btn" href="index.html">Back</a> <a class="btn" href="wiring-simple-d3.html">View D3.js Version</a></p>
+  
 </div>
 
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -46,7 +47,7 @@ const { ReactFlow: RF, Controls, Background, MiniMap, Handle, Position, NodeTool
 
 // Custom node component with multiple handles
 const HVACNode = React.memo(({ data, selected }) => {
-  const { label, nodeType, handles } = data;
+  const { label, nodeType, handles, zone } = data;
   
   return h('div', { 
     className: `hvac-node ${nodeType}`,
@@ -85,7 +86,16 @@ const HVACNode = React.memo(({ data, selected }) => {
         e.stopPropagation();
         window.showConfigPanel && window.showConfigPanel();
       }
-    }, '⚙️ Configuration')
+    }, '⚙️ Configuration'),
+    // Menu button for thermostat nodes
+    nodeType === 'thermostat' && h('button', {
+      className: 'menu-btn',
+      onClick: (e) => {
+        e.stopPropagation();
+        const rect = e.currentTarget.getBoundingClientRect();
+        window.showThermostatMenu && window.showThermostatMenu(zone, rect.right + 10, rect.top);
+      }
+    }, '☰')
   );
 });
 
@@ -96,15 +106,14 @@ const nodeTypes = {
 // Initial nodes with handles
 const initialNodes = [
   {
-    id: 'transformer',
+    id: 'ups',
     type: 'hvacNode',
-    position: { x: -120.44, y: 177.34 },
+    position: { x: 328.7889728461288, y: 63.75746206538315 },
     data: { 
-      label: '24VAC Transformer\n(UPS-backed)',
-      nodeType: 'transformer',
+      label: 'UPS\n(120VAC Battery Backup)',
+      nodeType: 'ups',
       handles: [
-        { id: 'r-out', type: 'source', position: Position.Right, label: 'R', style: { top: '35%', left: '100%' } },
-        { id: 'c-out', type: 'source', position: Position.Right, label: 'C', style: { top: '65%', left: '100%' } }
+        { id: 'ac-out', type: 'source', position: Position.Right, label: '120VAC', style: { top: '50%', left: '100%' } }
       ]
     }
   },
@@ -113,85 +122,104 @@ const initialNodes = [
     type: 'hvacNode',
     position: { x: 589.71, y: 200.89 },
     data: { 
-      label: 'BMPLUS-3000\nZone Panel',
+      label: 'BMPLUS-3000\nZone Panel\n(Onboard Transformer)',
       nodeType: 'panel',
       handles: [
-        // Power in (left top)
-        { id: 'r-in', type: 'target', position: Position.Left, label: 'R', style: { top: '5%' } },
-        { id: 'c-in', type: 'target', position: Position.Left, label: 'C', style: { top: '10%' } },
-        // Zone 1 Stat inputs (left)
-        { id: 'z1-r-in', type: 'target', position: Position.Left, label: 'Z1 STAT: R', style: { top: '20%' } },
-        { id: 'z1-g-in', type: 'target', position: Position.Left, label: 'Z1 STAT: G', style: { top: '27%' } },
-        { id: 'z1-y-in', type: 'target', position: Position.Left, label: 'Z1 STAT: Y', style: { top: '34%' } },
-        { id: 'z1-ob-in', type: 'target', position: Position.Left, label: 'Z1 STAT: O/B', style: { top: '41%' } },
-        { id: 'z1-we-in', type: 'target', position: Position.Left, label: 'Z1 STAT: W/E', style: { top: '48%' } },
-        // Zone 2 Stat inputs (left)
-        { id: 'z2-r-in', type: 'target', position: Position.Left, label: 'Z2 STAT: R', style: { top: '60%' } },
-        { id: 'z2-g-in', type: 'target', position: Position.Left, label: 'Z2 STAT: G', style: { top: '67%' } },
-        { id: 'z2-y-in', type: 'target', position: Position.Left, label: 'Z2 STAT: Y', style: { top: '74%' } },
-        { id: 'z2-ob-in', type: 'target', position: Position.Left, label: 'Z2 STAT: O/B', style: { top: '81%' } },
-        { id: 'z2-we-in', type: 'target', position: Position.Left, label: 'Z2 STAT: W/E', style: { top: '88%' } },
-        // HVAC out (right)
-        { id: 'y1-out', type: 'source', position: Position.Right, label: 'Y1', style: { top: '20%' } },
-        { id: 'w1-out', type: 'source', position: Position.Right, label: 'W1', style: { top: '35%' } },
-        { id: 'w2-out', type: 'source', position: Position.Right, label: 'W2', style: { top: '50%' } },
-        { id: 'g-out', type: 'source', position: Position.Right, label: 'G', style: { top: '65%' } },
-        { id: 'o-out', type: 'source', position: Position.Right, label: 'O', style: { top: '80%' } },
-        // Zone 1 damper (top)
-        { id: 'z1m1-out', type: 'source', position: Position.Top, label: 'Z1-M1', style: { left: '25%' } },
-        { id: 'z1m4-out', type: 'source', position: Position.Top, label: 'Z1-M4', style: { left: '50%' } },
-        { id: 'z1m6-out', type: 'source', position: Position.Top, label: 'Z1-M6', style: { left: '75%' } },
-        // Zone 2 damper (bottom)
-        { id: 'z2m1-out', type: 'source', position: Position.Bottom, label: 'Z2-M1', style: { left: '40%' } },
-        { id: 'z2m4-out', type: 'source', position: Position.Bottom, label: 'Z2-M4', style: { left: '65%' } },
-        // Relay connection
-        { id: 'c-relay', type: 'source', position: Position.Bottom, label: 'C', style: { left: '85%' } }
+        // Left side - Damper controls (top to bottom)
+        { id: 'z1m1-out', type: 'source', position: Position.Left, label: 'Z1-M1', style: { top: '8%' } },
+        { id: 'z1m4-out', type: 'source', position: Position.Left, label: 'Z1-M4', style: { top: '12%' } },
+        { id: 'z1m2-out', type: 'source', position: Position.Left, label: 'Z1-M2', style: { top: '16%' } },
+        { id: 'z1m6-out', type: 'source', position: Position.Left, label: 'Z1-M6', style: { top: '20%' } },
+        
+        { id: 'z2m1-out', type: 'source', position: Position.Left, label: 'Z2-M1', style: { top: '28%' } },
+        { id: 'z2m4-out', type: 'source', position: Position.Left, label: 'Z2-M4', style: { top: '32%' } },
+        { id: 'z2m2-out', type: 'source', position: Position.Left, label: 'Z2-M2', style: { top: '36%' } },
+        { id: 'z2m6-out', type: 'source', position: Position.Left, label: 'Z2-M6', style: { top: '40%' } },
+        
+        // Left side - Power terminals (middle section)
+        { id: 'r-in', type: 'target', position: Position.Left, label: 'R', style: { top: '52%' } },
+        { id: 'c-in', type: 'target', position: Position.Left, label: 'C', style: { top: '56%' } },
+        
+        // Left side - HVAC equipment outputs (bottom section)
+        { id: 'g-out', type: 'source', position: Position.Left, label: 'G', style: { top: '64%' } },
+        { id: 'y2-out', type: 'source', position: Position.Left, label: 'Y2', style: { top: '68%' } },
+        { id: 'y1-out', type: 'source', position: Position.Left, label: 'Y1', style: { top: '72%' } },
+        { id: 'o-out', type: 'source', position: Position.Left, label: 'O', style: { top: '76%' } },
+        { id: 'w2-out', type: 'source', position: Position.Left, label: 'W2/E', style: { top: '84%' } },
+        { id: 'w1-out', type: 'source', position: Position.Left, label: 'W1/B', style: { top: '88%' } },
+        { id: 'rc-out', type: 'source', position: Position.Left, label: 'RC', style: { top: '92%' } },
+        { id: 'c-relay', type: 'source', position: Position.Left, label: 'C', style: { top: '96%' } },
+        
+        // Right side - Zone 3 Thermostat (top)
+        { id: 'z3-c-in', type: 'target', position: Position.Right, label: 'Z3: C', style: { top: '8%' } },
+        { id: 'z3-we-in', type: 'target', position: Position.Right, label: 'Z3: W/E', style: { top: '12%' } },
+        { id: 'z3-ob-in', type: 'target', position: Position.Right, label: 'Z3: O/B', style: { top: '16%' } },
+        { id: 'z3-y-in', type: 'target', position: Position.Right, label: 'Z3: Y', style: { top: '20%' } },
+        { id: 'z3-g-in', type: 'target', position: Position.Right, label: 'Z3: G', style: { top: '24%' } },
+        { id: 'z3-r-in', type: 'target', position: Position.Right, label: 'Z3: R', style: { top: '28%' } },
+        
+        // Right side - Zone 2 Thermostat (middle)
+        { id: 'z2-c', type: 'source', position: Position.Right, label: 'Z2: C', style: { top: '36%' } },
+        { id: 'z2-we-in', type: 'target', position: Position.Right, label: 'Z2: W/E', style: { top: '40%' } },
+        { id: 'z2-ob-in', type: 'target', position: Position.Right, label: 'Z2: O/B', style: { top: '44%' } },
+        { id: 'z2-y-in', type: 'target', position: Position.Right, label: 'Z2: Y', style: { top: '48%' } },
+        { id: 'z2-g-in', type: 'target', position: Position.Right, label: 'Z2: G', style: { top: '52%' } },
+        { id: 'z2-r', type: 'source', position: Position.Right, label: 'Z2: R', style: { top: '56%' } },
+        
+        // Right side - Zone 1 Thermostat (bottom)
+        { id: 'z1-c', type: 'source', position: Position.Right, label: 'Z1: C', style: { top: '64%' } },
+        { id: 'z1-we-in', type: 'target', position: Position.Right, label: 'Z1: W/E', style: { top: '68%' } },
+        { id: 'z1-ob-in', type: 'target', position: Position.Right, label: 'Z1: O/B', style: { top: '72%' } },
+        { id: 'z1-y-in', type: 'target', position: Position.Right, label: 'Z1: Y', style: { top: '76%' } },
+        { id: 'z1-g-in', type: 'target', position: Position.Right, label: 'Z1: G', style: { top: '80%' } },
+        { id: 'z1-r', type: 'source', position: Position.Right, label: 'Z1: R', style: { top: '84%' } },
+        
+        // Top - Power input only
+        { id: 'ac-in', type: 'target', position: Position.Top, label: '120VAC', style: { left: '50%' } }
       ]
     }
   },
   {
     id: 'ecobeeZ1',
     type: 'hvacNode',
-    position: { x: 327.83, y: 46.13 },
+    position: { x: 1225.4261884803095, y: 589.7896230895655 },
     data: { 
       label: 'Ecobee Z1\n(Enhanced)',
       nodeType: 'thermostat',
       zone: 'Z1',
       handles: [
-        { id: 'r-in', type: 'target', position: Position.Left, label: 'R', style: { top: '15%' } },
-        { id: 'c-in', type: 'target', position: Position.Left, label: 'C', style: { top: '85%' } },
-        { id: 'r-out', type: 'source', position: Position.Bottom, label: 'R', style: { left: '10%' } },
-        { id: 'g-out', type: 'source', position: Position.Bottom, label: 'G', style: { left: '28%' } },
-        { id: 'y-out', type: 'source', position: Position.Bottom, label: 'Y', style: { left: '46%' } },
-        { id: 'ob-out', type: 'source', position: Position.Bottom, label: 'O/B', style: { left: '64%' } },
-        { id: 'we-out', type: 'source', position: Position.Bottom, label: 'W/E', style: { left: '82%' } }
+        { id: 'r-in', type: 'target', position: Position.Top, label: 'R', style: { left: '5%' } },
+        { id: 'c-in', type: 'target', position: Position.Top, label: 'C', style: { left: '95%' } },
+        { id: 'g-out', type: 'source', position: Position.Top, label: 'G', style: { left: '30%' } },
+        { id: 'y-out', type: 'source', position: Position.Top, label: 'Y', style: { left: '45%' } },
+        { id: 'ob-out', type: 'source', position: Position.Top, label: 'O/B', style: { left: '60%' } },
+        { id: 'we-out', type: 'source', position: Position.Top, label: 'W/E', style: { left: '75%' } }
       ]
     }
   },
   {
     id: 'ecobeeZ2',
     type: 'hvacNode',
-    position: { x: 247.52, y: 674.55 },
+    position: { x: 1479.655436596535, y: 731.3086084835709 },
     data: { 
       label: 'Ecobee Z2\n(Premium)',
       nodeType: 'thermostat',
       zone: 'Z2',
       handles: [
-        { id: 'r-in', type: 'target', position: Position.Left, label: 'R', style: { top: '15%' } },
-        { id: 'c-in', type: 'target', position: Position.Left, label: 'C', style: { top: '50%' } },
-        { id: 'r-out', type: 'source', position: Position.Top, label: 'R', style: { left: '10%' } },
-        { id: 'g-out', type: 'source', position: Position.Top, label: 'G', style: { left: '28%' } },
-        { id: 'y-out', type: 'source', position: Position.Top, label: 'Y', style: { left: '46%' } },
-        { id: 'ob-out', type: 'source', position: Position.Top, label: 'O/B', style: { left: '64%' } },
-        { id: 'we-out', type: 'source', position: Position.Top, label: 'W/E', style: { left: '82%' } },
-        { id: 'acc-out', type: 'source', position: Position.Right, label: 'ACC+', style: { top: '85%' } }
+        { id: 'acc-out', type: 'source', position: Position.Top, label: 'ACC+', style: { left: '5%' } },
+        { id: 'r-in', type: 'target', position: Position.Top, label: 'R', style: { left: '20%' } },
+        { id: 'g-out', type: 'source', position: Position.Top, label: 'G', style: { left: '35%' } },
+        { id: 'y-out', type: 'source', position: Position.Top, label: 'Y', style: { left: '50%' } },
+        { id: 'ob-out', type: 'source', position: Position.Top, label: 'O/B', style: { left: '65%' } },
+        { id: 'we-out', type: 'source', position: Position.Top, label: 'W/E', style: { left: '80%' } },
+        { id: 'c-in', type: 'target', position: Position.Top, label: 'C', style: { left: '95%' } }
       ]
     }
   },
   {
     id: 'relay',
     type: 'hvacNode',
-    position: { x: 911.46, y: 702.18 },
+    position: { x: 713.2240400165607, y: 745.7637926204724 },
     data: { 
       label: 'RIBU1C\nRelay',
       nodeType: 'relay',
@@ -206,7 +234,7 @@ const initialNodes = [
   {
     id: 'dehumidifier',
     type: 'hvacNode',
-    position: { x: 1171.95, y: 704.12 },
+    position: { x: 1130.467684800582, y: 743.912234338264 },
     data: { 
       label: 'GeneralAire\nDehumidifier',
       nodeType: 'dehumidifier',
@@ -219,21 +247,21 @@ const initialNodes = [
   {
     id: 'damper1',
     type: 'hvacNode',
-    position: { x: 592.38, y: 48.92 },
+    position: { x: 13.642908442547053, y: 353.12161968611264 },
     data: { 
       label: 'Zone 1 Damper\n(First Floor)',
       nodeType: 'damper',
       handles: [
-        { id: 'm1-in', type: 'target', position: Position.Bottom, label: 'M1', style: { left: '25%' } },
-        { id: 'm4-in', type: 'target', position: Position.Bottom, label: 'M4', style: { left: '50%' } },
-        { id: 'm6-in', type: 'target', position: Position.Bottom, label: 'M6', style: { left: '75%' } }
+        { id: 'm1-in', type: 'target', position: Position.Top, label: 'M1', style: { left: '25%' } },
+        { id: 'm4-in', type: 'target', position: Position.Top, label: 'M4', style: { left: '50%' } },
+        { id: 'm6-in', type: 'target', position: Position.Top, label: 'M6', style: { left: '75%' } }
       ]
     }
   },
   {
     id: 'damper2',
     type: 'hvacNode',
-    position: { x: 601.59, y: 751.53 },
+    position: { x: 278.04369325153374, y: 353.416380368098 },
     data: { 
       label: 'Zone 2 Damper\n(Basement)',
       nodeType: 'damper',
@@ -246,16 +274,16 @@ const initialNodes = [
   {
     id: 'equipment',
     type: 'hvacNode',
-    position: { x: 1117.62, y: 270.55 },
+    position: { x: 132.75628495964014, y: 602.3027501205024 },
     data: { 
       label: 'HVAC Equipment\n(Rheem RP14 + Aux)',
       nodeType: 'equipment',
       handles: [
-        { id: 'y1-in', type: 'target', position: Position.Left, label: 'Y1', style: { top: '15%' } },
-        { id: 'w1-in', type: 'target', position: Position.Left, label: 'W1', style: { top: '35%' } },
-        { id: 'w2-in', type: 'target', position: Position.Left, label: 'W2', style: { top: '55%' } },
-        { id: 'g-in', type: 'target', position: Position.Left, label: 'G', style: { top: '70%' } },
-        { id: 'o-in', type: 'target', position: Position.Left, label: 'O', style: { top: '85%' } }
+        { id: 'g-in', type: 'target', position: Position.Top, label: 'G', style: { left: '15%' } },
+        { id: 'y1-in', type: 'target', position: Position.Top, label: 'Y1', style: { left: '30%' } },
+        { id: 'o-in', type: 'target', position: Position.Top, label: 'O', style: { left: '50%' } },
+        { id: 'w2-in', type: 'target', position: Position.Top, label: 'W2', style: { left: '70%' } },
+        { id: 'w1-in', type: 'target', position: Position.Top, label: 'W1', style: { left: '85%' } }
       ]
     }
   }
@@ -263,6 +291,7 @@ const initialNodes = [
 
 // Edge colors
 const edgeColors = {
+  ac: '#9bb0d6',
   hot: '#7aa2ff',
   common: '#6ee7a1',
   signal: '#fcd34d',
@@ -272,29 +301,28 @@ const edgeColors = {
 
 // Initial edges with specific handle connections
 const initialEdges = [
-  // Power distribution
-  { id: 'e1', source: 'transformer', sourceHandle: 'r-out', target: 'panel', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 } },
-  { id: 'e2', source: 'transformer', sourceHandle: 'c-out', target: 'panel', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 } },
-  { id: 'e3', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ1', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 } },
-  { id: 'e4', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ1', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 } },
-  { id: 'e5', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ2', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 } },
-  { id: 'e6', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ2', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 } },
+  // UPS to Panel (120VAC)
+  { id: 'e1', source: 'ups', sourceHandle: 'ac-out', target: 'panel', targetHandle: 'ac-in', type: 'smoothstep', style: { stroke: edgeColors.ac, strokeWidth: 4 } },
   
-  // Zone 1 Ecobee calls to panel
-  { id: 'e7', source: 'ecobeeZ1', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z1-r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 } },
+  // Panel to Thermostats (24VAC power from onboard transformer) - R and C from zone terminal blocks
+  { id: 'e2', source: 'panel', sourceHandle: 'z1-r', target: 'ecobeeZ1', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 } },
+  { id: 'e3', source: 'panel', sourceHandle: 'z1-c', target: 'ecobeeZ1', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 2.5 } },
+  { id: 'e4', source: 'panel', sourceHandle: 'z2-r', target: 'ecobeeZ2', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 } },
+  { id: 'e5', source: 'panel', sourceHandle: 'z2-c', target: 'ecobeeZ2', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 2.5 } },
+  
+  // Zone 1 Ecobee control wires to panel (right side zone terminal block)
   { id: 'e7a', source: 'ecobeeZ1', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z1-g-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e8', source: 'ecobeeZ1', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z1-y-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e8a', source: 'ecobeeZ1', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z1-ob-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e8b', source: 'ecobeeZ1', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z1-we-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   
-  // Zone 2 Ecobee calls to panel
-  { id: 'e9', source: 'ecobeeZ2', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z2-r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 } },
+  // Zone 2 Ecobee calls to panel (right side of panel)
   { id: 'e9a', source: 'ecobeeZ2', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z2-g-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e10', source: 'ecobeeZ2', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z2-y-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e10a', source: 'ecobeeZ2', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z2-ob-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e10b', source: 'ecobeeZ2', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z2-we-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   
-  // Panel to equipment
+  // Panel to equipment (left side of panel)
   { id: 'e11', source: 'panel', sourceHandle: 'y1-out', target: 'equipment', targetHandle: 'y1-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e12', source: 'panel', sourceHandle: 'w1-out', target: 'equipment', targetHandle: 'w1-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   { id: 'e12a', source: 'panel', sourceHandle: 'w2-out', target: 'equipment', targetHandle: 'w2-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
@@ -307,7 +335,7 @@ const initialEdges = [
   { id: 'e17', source: 'relay', sourceHandle: 'no-out', target: 'dehumidifier', targetHandle: 'd1-in', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' } },
   { id: 'e18', source: 'relay', sourceHandle: 'com-out', target: 'dehumidifier', targetHandle: 'd2-in', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' } },
   
-  // Zone damper control
+  // Zone damper control (left side of panel)
   { id: 'e19', source: 'panel', sourceHandle: 'z1m1-out', target: 'damper1', targetHandle: 'm1-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } },
   { id: 'e20', source: 'panel', sourceHandle: 'z1m4-out', target: 'damper1', targetHandle: 'm4-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } },
   { id: 'e21', source: 'panel', sourceHandle: 'z1m6-out', target: 'damper1', targetHandle: 'm6-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } },
@@ -320,10 +348,16 @@ function Flow() {
   const [edges, setEdges] = useState(window.currentEdges || initialEdges);
   const [rfInstance, setRfInstance] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Expose setEdges and setNodes globally for highlight functions
   window.flowSetEdges = setEdges;
   window.flowSetNodes = setNodes;
+  
+  // Expose edit mode toggle
+  window.toggleEditMode = () => {
+    setIsEditMode(prev => !prev);
+  };
 
   const onNodesChange = useCallback((changes) => {
     // Filter out dimension changes that cause visibility toggling
@@ -397,6 +431,11 @@ function Flow() {
     setTimeout(() => instance.fitView({ padding: 0.2, duration: 200 }), 50);
   }, []);
 
+  // Expose function to show thermostat menu
+  window.showThermostatMenu = (zone, x, y) => {
+    setContextMenu({ zone, x, y });
+  };
+
   return h(RF, {
     nodes,
     edges,
@@ -409,27 +448,16 @@ function Flow() {
     fitView: false,
     minZoom: 0.2,
     maxZoom: 2,
+    nodesDraggable: isEditMode,
+    nodesConnectable: false,
+    elementsSelectable: true,
+    proOptions: { hideAttribution: true },
     defaultEdgeOptions: {
       type: 'smoothstep'
     }
   },
     h(Controls),
     h(Background, { color: '#223', gap: 16 }),
-    h(MiniMap, { 
-      nodeColor: (node) => {
-        const colors = {
-          transformer: '#9bb0d6',
-          panel: '#7aa2ff',
-          thermostat: '#6ee7a1',
-          relay: '#9bb0d6',
-          dehumidifier: '#fcd34d',
-          damper: '#fca5a5',
-          equipment: '#9bb0d6'
-        };
-        return colors[node.data.nodeType] || '#9bb0d6';
-      },
-      maskColor: 'rgba(11, 19, 40, 0.8)'
-    }),
     // Context menu
     contextMenu && h('div', {
       className: 'context-menu',
@@ -827,36 +855,36 @@ function highlightCustomPath(edgeIds, description, infoMode) {
 // Global functions accessible from toolbar buttons
 window.callHeat = (zone) => {
   const heatingEdges = zone === 'Z1' 
-    ? ['e3', 'e4', 'e7', 'e7a', 'e8', 'e8a', 'e8b', 'e12', 'e13', 'e19', 'e20', 'e21'] 
-    : ['e5', 'e6', 'e9', 'e9a', 'e10', 'e10a', 'e10b', 'e12', 'e13', 'e22', 'e23'];
+    ? ['e1', 'e2', 'e3', 'e7a', 'e8a', 'e8b', 'e12', 'e13', 'e19', 'e20', 'e21'] 
+    : ['e1', 'e4', 'e5', 'e9a', 'e10a', 'e10b', 'e12', 'e13', 'e22', 'e23'];
   highlightCustomPath(heatingEdges, `${zone} Heating`, 'heat');
 };
 
 window.callCool = (zone) => {
   const coolingEdges = zone === 'Z1'
-    ? ['e3', 'e4', 'e7', 'e7a', 'e8', 'e8a', 'e11', 'e13', 'e14', 'e19', 'e20', 'e21'] 
-    : ['e5', 'e6', 'e9', 'e9a', 'e10', 'e10a', 'e11', 'e13', 'e14', 'e22', 'e23'];
+    ? ['e1', 'e2', 'e3', 'e7a', 'e8', 'e11', 'e13', 'e14', 'e19', 'e20', 'e21'] 
+    : ['e1', 'e4', 'e5', 'e9a', 'e10', 'e11', 'e13', 'e14', 'e22', 'e23'];
   highlightCustomPath(coolingEdges, `${zone} Cooling`, 'cool');
 };
 
 window.callAuxHeat = (zone) => {
   const auxEdges = zone === 'Z1'
-    ? ['e3', 'e4', 'e7', 'e7a', 'e8b', 'e12a', 'e13', 'e19', 'e20', 'e21'] 
-    : ['e5', 'e6', 'e9', 'e9a', 'e10b', 'e12a', 'e13', 'e22', 'e23'];
+    ? ['e1', 'e2', 'e3', 'e7a', 'e8b', 'e12a', 'e13', 'e19', 'e20', 'e21'] 
+    : ['e1', 'e4', 'e5', 'e9a', 'e10b', 'e12a', 'e13', 'e22', 'e23'];
   highlightCustomPath(auxEdges, `${zone} Aux Heat`, 'aux');
 };
 
 window.callDehumidify = (zone) => {
   if (zone === 'Z2') {
-    highlightCustomPath(['e5', 'e6', 'e15', 'e16', 'e17', 'e18'], 'Z2 Dehumidifier', 'dehumidify');
+    highlightCustomPath(['e1', 'e4', 'e5', 'e15', 'e16', 'e17', 'e18'], 'Z2 Dehumidifier', 'dehumidify');
   }
 };
 
 function highlightPath(pathType) {
   const pathMap = {
-    power: ['e1', 'e2', 'e3', 'e4', 'e5', 'e6'],
-    cooling: ['e7', 'e9', 'e11', 'e13', 'e14'],
-    heating: ['e8', 'e10', 'e12', 'e13'],
+    power: ['e1', 'e2', 'e3', 'e4', 'e5'],
+    cooling: ['e7a', 'e9a', 'e8', 'e10', 'e11', 'e13', 'e14'],
+    heating: ['e7a', 'e9a', 'e8a', 'e8b', 'e10a', 'e10b', 'e12', 'e12a', 'e13'],
     dehumidify: ['e15', 'e16', 'e17', 'e18']
   };
   
@@ -883,6 +911,14 @@ document.getElementById('highlightCooling').addEventListener('click', () => high
 document.getElementById('highlightHeating').addEventListener('click', () => highlightPath('heating'));
 document.getElementById('highlightDehumid').addEventListener('click', () => highlightPath('dehumidify'));
 document.getElementById('resetBtn').addEventListener('click', resetHighlight);
+
+document.getElementById('toggleEditBtn').addEventListener('click', () => {
+  if (window.toggleEditMode) {
+    window.toggleEditMode();
+    const btn = document.getElementById('toggleEditBtn');
+    btn.textContent = btn.textContent.includes('✏️') ? '🔒 Lock Nodes' : '✏️ Toggle Edit Mode';
+  }
+});
 
 // Render the app
 const root = ReactDOM.createRoot(document.getElementById('root'));
