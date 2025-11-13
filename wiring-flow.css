@@ -353,7 +353,7 @@ h2{font-family:var(--cb-font-head);text-transform:var(--cb-tt);letter-spacing:va
   color: var(--cb-muted);
   font-weight: 600;
   pointer-events: none;
-  background: rgba(33, 41, 49, 0.9);
+  background: transparent;
   padding: 2px 4px;
   border-radius: var(--cb-round);
   font-family: var(--cb-font-ui);

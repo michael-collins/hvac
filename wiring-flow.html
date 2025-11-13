@@ -45,7 +45,7 @@ const { useState, useCallback, createElement: h, Fragment } = React;
 const { ReactFlow: RF, Controls, Background, MiniMap, Handle, Position, NodeToolbar, NodeResizer } = window.ReactFlow;
 
 // Custom node component with multiple handles
-function HVACNode({ data, selected }) {
+const HVACNode = React.memo(({ data, selected }) => {
   const { label, nodeType, handles } = data;
   
   return h('div', { 
@@ -53,8 +53,17 @@ function HVACNode({ data, selected }) {
     style: { position: 'relative' }
   },
     // Render handles
-    handles && handles.map((handle, idx) => 
-      h(Fragment, { key: handle.id },
+    handles && handles.map((handle, idx) => {
+      const labelPosition = handle.position === Position.Top ? 'bottom' : 
+                           handle.position === Position.Bottom ? 'top' :
+                           handle.position === Position.Left ? 'right' : 'left';
+      const labelOffset = handle.position === Position.Top || handle.position === Position.Bottom ? 'left' : 'top';
+      const labelStyle = {
+        [labelPosition]: '100%',
+        [labelOffset]: handle.style[labelOffset]
+      };
+      
+      return h(Fragment, { key: handle.id },
         h(Handle, {
           type: handle.type,
           position: handle.position,
@@ -63,15 +72,10 @@ function HVACNode({ data, selected }) {
         }),
         h('span', { 
           className: 'handle-label',
-          style: {
-            [handle.position === Position.Top ? 'bottom' : 
-             handle.position === Position.Bottom ? 'top' :
-             handle.position === Position.Left ? 'right' : 'left']: '100%',
-            [handle.position === Position.Top || handle.position === Position.Bottom ? 'left' : 'top']: handle.style[handle.position === Position.Top || handle.position === Position.Bottom ? 'left' : 'top']
-          }
+          style: labelStyle
         }, handle.label)
-      )
-    ),
+      );
+    }),
     // Node label
     h('div', null, label),
     // Configuration button for panel node
@@ -83,7 +87,7 @@ function HVACNode({ data, selected }) {
       }
     }, '⚙️ Configuration')
   );
-}
+});
 
 const nodeTypes = {
   hvacNode: HVACNode
@@ -269,46 +273,46 @@ const edgeColors = {
 // Initial edges with specific handle connections
 const initialEdges = [
   // Power distribution
-  { id: 'e1', source: 'transformer', sourceHandle: 'r-out', target: 'panel', targetHandle: 'r-in', label: 'R (24VAC)', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e2', source: 'transformer', sourceHandle: 'c-out', target: 'panel', targetHandle: 'c-in', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e3', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ1', targetHandle: 'r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e4', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ1', targetHandle: 'c-in', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e5', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ2', targetHandle: 'r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e6', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ2', targetHandle: 'c-in', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e1', source: 'transformer', sourceHandle: 'r-out', target: 'panel', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 } },
+  { id: 'e2', source: 'transformer', sourceHandle: 'c-out', target: 'panel', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 } },
+  { id: 'e3', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ1', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 } },
+  { id: 'e4', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ1', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 } },
+  { id: 'e5', source: 'transformer', sourceHandle: 'r-out', target: 'ecobeeZ2', targetHandle: 'r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 3 } },
+  { id: 'e6', source: 'transformer', sourceHandle: 'c-out', target: 'ecobeeZ2', targetHandle: 'c-in', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 3 } },
   
   // Zone 1 Ecobee calls to panel
-  { id: 'e7', source: 'ecobeeZ1', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z1-r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e7a', source: 'ecobeeZ1', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z1-g-in', label: 'G', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e8', source: 'ecobeeZ1', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z1-y-in', label: 'Y', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e8a', source: 'ecobeeZ1', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z1-ob-in', label: 'O/B', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e8b', source: 'ecobeeZ1', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z1-we-in', label: 'W/E', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e7', source: 'ecobeeZ1', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z1-r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 } },
+  { id: 'e7a', source: 'ecobeeZ1', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z1-g-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e8', source: 'ecobeeZ1', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z1-y-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e8a', source: 'ecobeeZ1', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z1-ob-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e8b', source: 'ecobeeZ1', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z1-we-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   
   // Zone 2 Ecobee calls to panel
-  { id: 'e9', source: 'ecobeeZ2', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z2-r-in', label: 'R', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e9a', source: 'ecobeeZ2', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z2-g-in', label: 'G', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e10', source: 'ecobeeZ2', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z2-y-in', label: 'Y', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e10a', source: 'ecobeeZ2', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z2-ob-in', label: 'O/B', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e10b', source: 'ecobeeZ2', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z2-we-in', label: 'W/E', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e9', source: 'ecobeeZ2', sourceHandle: 'r-out', target: 'panel', targetHandle: 'z2-r-in', type: 'smoothstep', style: { stroke: edgeColors.hot, strokeWidth: 2.5 } },
+  { id: 'e9a', source: 'ecobeeZ2', sourceHandle: 'g-out', target: 'panel', targetHandle: 'z2-g-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e10', source: 'ecobeeZ2', sourceHandle: 'y-out', target: 'panel', targetHandle: 'z2-y-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e10a', source: 'ecobeeZ2', sourceHandle: 'ob-out', target: 'panel', targetHandle: 'z2-ob-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e10b', source: 'ecobeeZ2', sourceHandle: 'we-out', target: 'panel', targetHandle: 'z2-we-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   
   // Panel to equipment
-  { id: 'e11', source: 'panel', sourceHandle: 'y1-out', target: 'equipment', targetHandle: 'y1-in', label: 'Y1', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e12', source: 'panel', sourceHandle: 'w1-out', target: 'equipment', targetHandle: 'w1-in', label: 'W1', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e12a', source: 'panel', sourceHandle: 'w2-out', target: 'equipment', targetHandle: 'w2-in', label: 'W2', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e13', source: 'panel', sourceHandle: 'g-out', target: 'equipment', targetHandle: 'g-in', label: 'G', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e14', source: 'panel', sourceHandle: 'o-out', target: 'equipment', targetHandle: 'o-in', label: 'O', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e11', source: 'panel', sourceHandle: 'y1-out', target: 'equipment', targetHandle: 'y1-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e12', source: 'panel', sourceHandle: 'w1-out', target: 'equipment', targetHandle: 'w1-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e12a', source: 'panel', sourceHandle: 'w2-out', target: 'equipment', targetHandle: 'w2-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e13', source: 'panel', sourceHandle: 'g-out', target: 'equipment', targetHandle: 'g-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e14', source: 'panel', sourceHandle: 'o-out', target: 'equipment', targetHandle: 'o-in', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
   
   // Dehumidify path
-  { id: 'e15', source: 'ecobeeZ2', sourceHandle: 'acc-out', target: 'relay', targetHandle: 'coil-plus', label: 'ACC+', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e16', source: 'panel', sourceHandle: 'c-relay', target: 'relay', targetHandle: 'coil-minus', label: 'C', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e17', source: 'relay', sourceHandle: 'no-out', target: 'dehumidifier', targetHandle: 'd1-in', label: 'D1', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e18', source: 'relay', sourceHandle: 'com-out', target: 'dehumidifier', targetHandle: 'd2-in', label: 'D2', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
+  { id: 'e15', source: 'ecobeeZ2', sourceHandle: 'acc-out', target: 'relay', targetHandle: 'coil-plus', type: 'smoothstep', style: { stroke: edgeColors.signal, strokeWidth: 2.5 } },
+  { id: 'e16', source: 'panel', sourceHandle: 'c-relay', target: 'relay', targetHandle: 'coil-minus', type: 'smoothstep', style: { stroke: edgeColors.common, strokeWidth: 2.5 } },
+  { id: 'e17', source: 'relay', sourceHandle: 'no-out', target: 'dehumidifier', targetHandle: 'd1-in', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' } },
+  { id: 'e18', source: 'relay', sourceHandle: 'com-out', target: 'dehumidifier', targetHandle: 'd2-in', type: 'smoothstep', style: { stroke: edgeColors['dry-contact'], strokeWidth: 2.5, strokeDasharray: '5,5' } },
   
   // Zone damper control
-  { id: 'e19', source: 'panel', sourceHandle: 'z1m1-out', target: 'damper1', targetHandle: 'm1-in', label: 'M1', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e20', source: 'panel', sourceHandle: 'z1m4-out', target: 'damper1', targetHandle: 'm4-in', label: 'M4', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e21', source: 'panel', sourceHandle: 'z1m6-out', target: 'damper1', targetHandle: 'm6-in', label: 'M6', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e22', source: 'panel', sourceHandle: 'z2m1-out', target: 'damper2', targetHandle: 'm1-in', label: 'M1', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } },
-  { id: 'e23', source: 'panel', sourceHandle: 'z2m4-out', target: 'damper2', targetHandle: 'm4-in', label: 'M4', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 }, labelStyle: { fill: '#e8eefc', fontWeight: 600 }, labelBgPadding: [8, 4], labelBgBorderRadius: 2, labelBgStyle: { fill: 'rgba(33, 41, 49, 0.9)' } }
+  { id: 'e19', source: 'panel', sourceHandle: 'z1m1-out', target: 'damper1', targetHandle: 'm1-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } },
+  { id: 'e20', source: 'panel', sourceHandle: 'z1m4-out', target: 'damper1', targetHandle: 'm4-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } },
+  { id: 'e21', source: 'panel', sourceHandle: 'z1m6-out', target: 'damper1', targetHandle: 'm6-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } },
+  { id: 'e22', source: 'panel', sourceHandle: 'z2m1-out', target: 'damper2', targetHandle: 'm1-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } },
+  { id: 'e23', source: 'panel', sourceHandle: 'z2m4-out', target: 'damper2', targetHandle: 'm4-in', type: 'smoothstep', style: { stroke: edgeColors.damper, strokeWidth: 2.5 } }
 ];
 
 function Flow() {
@@ -322,9 +326,16 @@ function Flow() {
   window.flowSetNodes = setNodes;
 
   const onNodesChange = useCallback((changes) => {
+    // Filter out dimension changes that cause visibility toggling
+    const filteredChanges = changes.filter(change => 
+      change.type !== 'dimensions'
+    );
+    
+    if (filteredChanges.length === 0) return;
+    
     setNodes((nds) => {
       const updated = [...nds];
-      changes.forEach(change => {
+      filteredChanges.forEach(change => {
         if (change.type === 'position' && change.position) {
           const node = updated.find(n => n.id === change.id);
           if (node) node.position = change.position;
@@ -343,7 +354,7 @@ function Flow() {
       window.currentNodes = updated;
       return updated;
     });
-  }, [rfInstance]);
+  }, []);
 
   const onEdgesChange = useCallback((changes) => {
     // Only update edges if there are actual changes that matter
@@ -791,10 +802,8 @@ function highlightCustomPath(edgeIds, description, infoMode) {
   // Update nodes styling - preserve positions and data
   const updatedNodes = (window.currentNodes || initialNodes).map(node => ({
     ...node,
-    style: {
-      ...node.style,
-      opacity: highlightNodeIds.has(node.id) ? 1 : 0.3
-    }
+    data: { ...node.data },
+    style: highlightNodeIds.has(node.id) ? { opacity: 1 } : { opacity: 0.3 }
   }));
   
   // Update state instead of re-rendering
