@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecobee Setup & Settings</title>
+  <style>
+    :root {
+      /* --- Core palette (blueprint theme) --- */
+      --cb-bg-900: #212931;
+      --cb-bg-800: #252E35;
+      --cb-ink:     #E7EFE4;
+      --cb-ink-2:   #CFDAD0;
+      --cb-grid:    #5C6668;
+      --cb-muted:   #98A5A3;
+      --cb-edge:    #8C9698;
+      --cb-alert:   #CD2730;
+      --cb-alert-2: #Bf2F36;
+      --cb-accent:  #7aa2ff;
+      --cb-good:    #6ee7a1;
+      --cb-warn:    #fcd34d;
+
+      --cb-stroke-1: 1px;
+      --cb-stroke-2: 2px;
+      --cb-round: 2px;
+
+      --cb-font-ui: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --cb-font-head: 'Archivo Narrow', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      --cb-tt: uppercase;
+      --cb-track-tight: 0.04em;
+      --cb-track-wide: 0.08em;
+
+      --cb-glow: 0 0 0.5px rgba(231,239,228,.55), 0 0 2px rgba(231,239,228,.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--cb-bg-900);
+      color: var(--cb-ink);
+      font-family: var(--cb-font-ui);
+      letter-spacing: var(--cb-track-tight);
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: var(--cb-font-head);
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 2rem;
+      color: var(--cb-accent);
+      margin-bottom: 0.5rem;
+      border-bottom: var(--cb-stroke-2) solid var(--cb-accent);
+      padding-bottom: 0.5rem;
+    }
+
+    h2 {
+      font-family: var(--cb-font-head);
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 1.4rem;
+      color: var(--cb-accent);
+      margin: 2rem 0 1rem;
+    }
+
+    h3 {
+      font-family: var(--cb-font-head);
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--cb-ink);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    h4 {
+      font-family: var(--cb-font-head);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--cb-ink);
+      margin: 1rem 0 0.5rem;
+      text-transform: none;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--cb-bg-800);
+      border: var(--cb-stroke-2) solid var(--cb-edge);
+      color: var(--cb-ink-2);
+      text-decoration: none;
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 0.82rem;
+      transition: all 0.15s ease;
+    }
+
+    .back-link:hover {
+      border-color: var(--cb-alert);
+      color: var(--cb-alert);
+      box-shadow: var(--cb-glow);
+    }
+
+    .card {
+      background: var(--cb-bg-800);
+      border: var(--cb-stroke-2) solid var(--cb-edge);
+      box-shadow: inset 0 0 0 var(--cb-stroke-1) var(--cb-grid);
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .alert-box {
+      background: rgba(205, 39, 48, 0.1);
+      border-left: 4px solid var(--cb-alert);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .success-box {
+      background: rgba(110, 231, 161, 0.1);
+      border-left: 4px solid var(--cb-good);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .warn-box {
+      background: rgba(252, 211, 77, 0.1);
+      border-left: 4px solid var(--cb-warn);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .info-box {
+      background: rgba(122, 162, 255, 0.1);
+      border-left: 4px solid var(--cb-accent);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: var(--cb-bg-900);
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: var(--cb-accent);
+      color: var(--cb-bg-900);
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+    }
+
+    td {
+      padding: 0.75rem;
+      border-bottom: var(--cb-stroke-1) solid var(--cb-grid);
+      color: var(--cb-ink-2);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(122, 162, 255, 0.05);
+    }
+
+    code {
+      background: var(--cb-bg-900);
+      color: var(--cb-good);
+      padding: 0.2rem 0.4rem;
+      border-radius: var(--cb-round);
+      font-size: 0.9em;
+      font-family: var(--cb-font-ui);
+    }
+
+    ul, ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+      color: var(--cb-ink-2);
+    }
+
+    li {
+      margin: 0.5rem 0;
+    }
+
+    strong {
+      color: var(--cb-ink);
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0.75rem 0;
+      color: var(--cb-ink-2);
+    }
+
+    .setting-path {
+      color: var(--cb-muted);
+      font-size: 0.85rem;
+      font-style: italic;
+      margin-top: 0.25rem;
+    }
+
+    .zone-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: var(--cb-accent);
+      color: var(--cb-bg-900);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      margin-right: 0.5rem;
+    }
+
+    .zone-badge.z1 {
+      background: var(--cb-good);
+    }
+
+    .zone-badge.z2 {
+      background: var(--cb-warn);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
+
+      table {
+        font-size: 0.8rem;
+      }
+
+      th, td {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Home</a>
+    
+    <h1>Ecobee Setup & Settings</h1>
+
+    <div class="info-box">
+      <strong>System Configuration:</strong>
+      <ul style="margin-bottom: 0;">
+        <li><span class="zone-badge z1">Zone 1</span> Ecobee Enhanced (First Floor)</li>
+        <li><span class="zone-badge z2">Zone 2</span> Ecobee Premium (Basement)</li>
+      </ul>
+    </div>
+
+    <h2>Equipment Configuration</h2>
+
+    <div class="card">
+      <h3>Zone 1: Ecobee Enhanced (First Floor)</h3>
+      <p class="setting-path">Settings → Installation Settings → Equipment</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Value</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Heating</strong></td>
+            <td>Heat Pump</td>
+            <td>Primary heating mode</td>
+          </tr>
+          <tr>
+            <td><strong>Heat Pump Type</strong></td>
+            <td>Air Source</td>
+            <td>Rheem RP14 outdoor unit</td>
+          </tr>
+          <tr>
+            <td><strong>Heat Stages</strong></td>
+            <td>1 Stage</td>
+            <td>Single-stage compressor (Y1)</td>
+          </tr>
+          <tr>
+            <td><strong>Reversing Valve</strong></td>
+            <td>O/B Terminal</td>
+            <td>Energized in heating mode</td>
+          </tr>
+          <tr>
+            <td><strong>Cooling</strong></td>
+            <td>Heat Pump</td>
+            <td>Same unit for cooling</td>
+          </tr>
+          <tr>
+            <td><strong>Cool Stages</strong></td>
+            <td>1 Stage</td>
+            <td>Single-stage cooling (Y1)</td>
+          </tr>
+          <tr>
+            <td><strong>Aux Heat</strong></td>
+            <td>Yes</td>
+            <td>Propane furnace backup</td>
+          </tr>
+          <tr>
+            <td><strong>Aux Heat Stages</strong></td>
+            <td>1 Stage</td>
+            <td>W1 terminal only</td>
+          </tr>
+          <tr>
+            <td><strong>Accessories</strong></td>
+            <td>None</td>
+            <td>Dehumidifier on Zone 2 only</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Zone 2: Ecobee Premium (Basement)</h3>
+      <p class="setting-path">Settings → Installation Settings → Equipment</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Value</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Heating</strong></td>
+            <td>Heat Pump</td>
+            <td>Primary heating mode</td>
+          </tr>
+          <tr>
+            <td><strong>Heat Pump Type</strong></td>
+            <td>Air Source</td>
+            <td>Rheem RP14 outdoor unit</td>
+          </tr>
+          <tr>
+            <td><strong>Heat Stages</strong></td>
+            <td>1 Stage</td>
+            <td>Single-stage compressor (Y1)</td>
+          </tr>
+          <tr>
+            <td><strong>Reversing Valve</strong></td>
+            <td>O/B Terminal</td>
+            <td>Energized in heating mode</td>
+          </tr>
+          <tr>
+            <td><strong>Cooling</strong></td>
+            <td>Heat Pump</td>
+            <td>Same unit for cooling</td>
+          </tr>
+          <tr>
+            <td><strong>Cool Stages</strong></td>
+            <td>1 Stage</td>
+            <td>Single-stage cooling (Y1)</td>
+          </tr>
+          <tr>
+            <td><strong>Aux Heat</strong></td>
+            <td>Yes</td>
+            <td>Propane furnace backup</td>
+          </tr>
+          <tr>
+            <td><strong>Aux Heat Stages</strong></td>
+            <td>1 Stage</td>
+            <td>W1 terminal only</td>
+          </tr>
+          <tr>
+            <td><strong>Accessories</strong></td>
+            <td>Dehumidifier (ACC+)</td>
+            <td>GeneralAire via relay</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Thresholds & Balance Point</h2>
+
+    <div class="card">
+      <h3>Heat Pump Balance Point Settings</h3>
+      <p class="setting-path">Settings → Installation Settings → Thresholds</p>
+
+      <div class="warn-box">
+        <strong>⚠️ Critical Setting:</strong> Since you're using <strong>internet weather data</strong> (no outdoor sensor), configure these carefully:
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Recommended Value</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Compressor Min Outdoor Temp</strong></td>
+            <td>0°F to 5°F</td>
+            <td>Prevents heat pump from running in extremely cold weather where it's inefficient</td>
+          </tr>
+          <tr>
+            <td><strong>Aux Heat Max Outdoor Temp</strong></td>
+            <td>30°F to 32°F</td>
+            <td>Your balance point — heat pump efficient above this, aux heat below</td>
+          </tr>
+          <tr>
+            <td><strong>Compressor to Aux Heat Time</strong></td>
+            <td>60-90 min</td>
+            <td>How long heat pump runs before switching to aux if not satisfied</td>
+          </tr>
+          <tr>
+            <td><strong>Aux Heat Differential</strong></td>
+            <td>2-3°F</td>
+            <td>Indoor temp drop below setpoint before aux heat engages</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box">
+        <strong>How Ecobee Decides:</strong>
+        <ul style="margin-bottom: 0;">
+          <li>If outdoor temp < <strong>Aux Heat Max Outdoor Temp</strong> → Aux heat immediately</li>
+          <li>If outdoor temp > <strong>Aux Heat Max Outdoor Temp</strong> → Heat pump first</li>
+          <li>If heat pump runs for <strong>Compressor to Aux Heat Time</strong> without satisfying → Switch to aux</li>
+          <li>If outdoor temp < <strong>Compressor Min Outdoor Temp</strong> → Heat pump locked out, aux only</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Fan & Ventilation</h2>
+
+    <div class="card">
+      <h3>Fan Settings</h3>
+      <p class="setting-path">Settings → Installation Settings → Thresholds</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Recommended Value</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Fan Minimum On Time</strong></td>
+            <td>0-5 min/hour</td>
+            <td>For air circulation when no heating/cooling. Zone panel may conflict — keep low.</td>
+          </tr>
+          <tr>
+            <td><strong>Fan Dissipation Time</strong></td>
+            <td>120 sec (default)</td>
+            <td>Post-heating/cooling fan runtime to clear coil heat</td>
+          </tr>
+          <tr>
+            <td><strong>Cooling Dissipation Time</strong></td>
+            <td>60-90 sec</td>
+            <td>Post-cooling fan runtime to prevent condensation</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Dehumidifier Settings (Zone 2 Only)</h2>
+
+    <div class="card">
+      <h3>Humidity Control Configuration</h3>
+      <p class="setting-path">Settings → Installation Settings → Accessories → Dehumidifier</p>
+
+      <div class="alert-box">
+        <strong>Zone 2 ONLY:</strong> Zone 1 does not have dehumidifier wired. Only configure this on basement Ecobee.
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Value</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Dehumidifier Type</strong></td>
+            <td>Ventilator (ACC+)</td>
+            <td>Uses ACC+ terminal to trigger relay</td>
+          </tr>
+          <tr>
+            <td><strong>Dehumidification Setpoint</strong></td>
+            <td>50-55% RH</td>
+            <td>Basement target humidity</td>
+          </tr>
+          <tr>
+            <td><strong>Overcool Max</strong></td>
+            <td>0°F</td>
+            <td>Disable overcool — dedicated dehumidifier handles this</td>
+          </tr>
+          <tr>
+            <td><strong>Fan During Dehumidify</strong></td>
+            <td>Off</td>
+            <td><strong>CRITICAL:</strong> Must be OFF so relay controls fan via BMPLUS G terminal</td>
+          </tr>
+          <tr>
+            <td><strong>Min Dehumidifier Runtime</strong></td>
+            <td>10 min</td>
+            <td>Prevents short cycling</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>How It Works</h4>
+      <ol>
+        <li>Zone 2 Ecobee detects humidity > setpoint</li>
+        <li>Energizes ACC+ terminal (24VAC)</li>
+        <li>RIBU1C relay closes → D1-D2 on GeneralAire closes</li>
+        <li>Relay forces Zone 2 damper OPEN, Zone 1 damper CLOSED</li>
+        <li>BMPLUS G output energizes blower at low speed</li>
+        <li>Dehumidifier runs until humidity drops ~2% below setpoint (hysteresis)</li>
+      </ol>
+
+      <div class="warn-box">
+        <strong>Important:</strong> If "Fan During Dehumidify" is set to ON, the blower will run constantly even when dehumidifier is idle. Keep it OFF.
+      </div>
+    </div>
+
+    <h2>Smart Features & Scheduling</h2>
+
+    <div class="card">
+      <h3>Comfort Settings</h3>
+      <p class="setting-path">Main Menu → Comfort Settings</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Recommendation</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Smart Home/Away</strong></td>
+            <td>Enabled</td>
+            <td>Uses geofencing to adjust temps when nobody home</td>
+          </tr>
+          <tr>
+            <td><strong>Follow Me</strong></td>
+            <td>Enabled (if using sensors)</td>
+            <td>Prioritizes rooms you're actually using</td>
+          </tr>
+          <tr>
+            <td><strong>Sleep Mode</strong></td>
+            <td>Custom schedule</td>
+            <td>Lower temps at night for energy savings</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Advanced Settings</h3>
+
+      <h4>Smart Recovery</h4>
+      <p class="setting-path">Settings → Preferences → Smart Recovery</p>
+      <ul>
+        <li><strong>Enabled:</strong> Starts heating/cooling early to reach setpoint by scheduled time</li>
+        <li>With dual fuel, may over-rely on aux heat during recovery — monitor and disable if propane usage is high</li>
+      </ul>
+
+      <h4>Alerts & Reminders</h4>
+      <p class="setting-path">Settings → Alerts & Reminders</p>
+      <ul>
+        <li><strong>Filter reminder:</strong> 90 days (or based on runtime hours)</li>
+        <li><strong>Aux Heat Runtime Alert:</strong> Set to 2-3 hours to catch issues</li>
+        <li><strong>Temperature Alert:</strong> If temp drops/rises beyond threshold</li>
+      </ul>
+    </div>
+
+    <h2>Coordination Between Zones</h2>
+
+    <div class="card">
+      <h3>BMPLUS-3000 Zone Management</h3>
+
+      <div class="info-box">
+        The BMPLUS-3000 panel handles zone coordination automatically:
+        <ul style="margin-bottom: 0;">
+          <li><strong>30-second stagger:</strong> If both zones call simultaneously, BMPLUS delays one zone to prevent airflow issues</li>
+          <li><strong>Single damper at a time:</strong> Only one zone damper opens to maintain proper static pressure</li>
+          <li><strong>Priority:</strong> Usually first-in, first-served; check BMPLUS manual for priority settings</li>
+        </ul>
+      </div>
+
+      <div class="warn-box">
+        <strong>Don't adjust Ecobee staging timers to compensate for zone delays.</strong> Let BMPLUS handle coordination. If one zone feels delayed, this is normal zone panel behavior.
+      </div>
+    </div>
+
+    <h2>Initial Setup Checklist</h2>
+
+    <div class="card">
+      <h3>Both Zones</h3>
+      <ol>
+        <li>✓ Configure equipment type: Heat pump, 1 stage heat/cool, aux heat</li>
+        <li>✓ Set reversing valve: O/B, energized in heat</li>
+        <li>✓ Configure thresholds: Compressor lockout, aux balance point</li>
+        <li>✓ Test heating mode: Verify heat pump energizes, then aux heat when triggered</li>
+        <li>✓ Test cooling mode: Verify compressor and fan operate correctly</li>
+        <li>✓ Set up schedules and comfort profiles</li>
+        <li>✓ Enable smart home/away if desired</li>
+      </ol>
+
+      <h3>Zone 2 (Premium) Additional Steps</h3>
+      <ol>
+        <li>✓ Configure dehumidifier accessory on ACC+ terminal</li>
+        <li>✓ Set dehumidification setpoint (50-55% RH)</li>
+        <li>✓ <strong>Set "Fan During Dehumidify" to OFF</strong></li>
+        <li>✓ Test dehumidifier: Should trigger relay, close dampers, run blower</li>
+      </ol>
+    </div>
+
+    <h2>Troubleshooting Common Issues</h2>
+
+    <div class="card">
+      <h3>Heat pump not running in cold weather</h3>
+      <ul>
+        <li><strong>Check:</strong> Compressor Min Outdoor Temp threshold</li>
+        <li><strong>Solution:</strong> If it's too high (e.g., 35°F), heat pump locks out prematurely. Lower to 0-5°F.</li>
+      </ul>
+
+      <h3>Aux heat running too often</h3>
+      <ul>
+        <li><strong>Check:</strong> Aux Heat Max Outdoor Temp (balance point)</li>
+        <li><strong>Solution:</strong> If set too high (e.g., 40°F), aux heat engages unnecessarily. Lower to 30-32°F.</li>
+        <li><strong>Also check:</strong> Compressor to Aux Heat Time — may be too short (increase to 90 min)</li>
+      </ul>
+
+      <h3>One zone always waiting for the other</h3>
+      <ul>
+        <li><strong>Cause:</strong> BMPLUS 30-second stagger delay</li>
+        <li><strong>Solution:</strong> This is normal. Adjust schedules so zones don't call simultaneously, or accept brief delays.</li>
+      </ul>
+
+      <h3>Dehumidifier not running (Zone 2)</h3>
+      <ul>
+        <li><strong>Check:</strong> "Fan During Dehumidify" setting — must be OFF</li>
+        <li><strong>Check:</strong> ACC+ wiring to relay, relay to dehumidifier D1-D2</li>
+        <li><strong>Check:</strong> Humidity setpoint — basement may already be below threshold</li>
+      </ul>
+
+      <h3>Ecobee displays "Calibrating" after power loss</h3>
+      <ul>
+        <li><strong>Cause:</strong> Brownout on C-wire during BMPLUS power-up</li>
+        <li><strong>Solution:</strong> Install UPS on 120VAC line powering BMPLUS (see Power Stability page)</li>
+      </ul>
+    </div>
+
+    <div class="success-box" style="margin-top: 2rem;">
+      <strong>✓ Configuration Complete</strong><br>
+      Your dual-zone heat pump system with dehumidification is now properly configured. Monitor performance for the first few weeks and adjust balance point if needed.
+    </div>
+
+  </div>
+</body>
+</html>

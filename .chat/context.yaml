@@ -6,7 +6,7 @@ description: >
   for a two-zone HVAC system using BMPLUS-3000 zone panel,
   Ecobee Enhanced + Premium thermostats, Rheem RP14 heat pump with
   propane aux, and a GeneralAire whole-house dehumidifier (D1/D2).
-  Site includes SVG wiring diagrams, explanatory cards, and flowcharts.
+  Site includes wiring diagrams, explanatory cards, and flowcharts.
 
 goals:
   - Maintain clean, dependency-free static pages (no frameworks).

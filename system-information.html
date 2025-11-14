@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HVAC System Information</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Archivo+Narrow:wght@600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* --- Core palette (blueprint theme) --- */
+      --cb-bg-900: #212931;
+      --cb-bg-800: #252E35;
+      --cb-ink:     #E7EFE4;
+      --cb-ink-2:   #CFDAD0;
+      --cb-grid:    #5C6668;
+      --cb-muted:   #98A5A3;
+      --cb-edge:    #8C9698;
+      --cb-alert:   #CD2730;
+      --cb-alert-2: #Bf2F36;
+      --cb-accent:  #7aa2ff;
+      --cb-good:    #6ee7a1;
+      --cb-warn:    #fcd34d;
+
+      /* --- Strokes --- */
+      --cb-stroke-1: 1px;
+      --cb-stroke-2: 2px;
+      --cb-round: 2px;
+
+      /* --- Typography --- */
+      --cb-font-ui: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --cb-font-head: 'Archivo Narrow', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      --cb-tt: uppercase;
+      --cb-track-tight: 0.04em;
+      --cb-track-wide: 0.08em;
+
+      /* --- Shadows --- */
+      --cb-glow: 0 0 0.5px rgba(231,239,228,.55), 0 0 2px rgba(231,239,228,.18);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--cb-font-ui);
+      background: var(--cb-bg-900);
+      color: var(--cb-ink);
+      line-height: 1.35;
+      padding: 2rem;
+      text-rendering: geometricPrecision;
+      letter-spacing: var(--cb-track-tight);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      background: var(--cb-bg-800);
+      padding: 10px 14px;
+      border-radius: 0;
+      border: var(--cb-stroke-2) solid var(--cb-edge);
+      box-shadow: inset 0 0 0 var(--cb-stroke-1) var(--cb-grid);
+      color: var(--cb-ink-2);
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .back-link:hover {
+      border-color: var(--cb-alert);
+      color: var(--cb-alert);
+      box-shadow: var(--cb-glow);
+    }
+
+    h1 {
+      font-family: var(--cb-font-head);
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 28px;
+      color: var(--cb-accent);
+      border-bottom: var(--cb-stroke-2) solid var(--cb-accent);
+      padding-bottom: 0.5rem;
+      margin: 0.2em 0 1em;
+    }
+
+    h2 {
+      font-family: var(--cb-font-head);
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 22px;
+      color: var(--cb-accent);
+      margin: 1.5em 0 0.5em;
+    }
+
+    h3 {
+      font-family: var(--cb-font-head);
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--cb-ink);
+      margin: 1.2em 0 0.4em;
+    }
+
+    h4 {
+      font-family: var(--cb-font-head);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--cb-ink);
+      margin: 1rem 0 0.5rem;
+      text-transform: none;
+    }
+
+    .card {
+      background: var(--cb-bg-800);
+      border: var(--cb-stroke-2) solid var(--cb-edge);
+      box-shadow: inset 0 0 0 var(--cb-stroke-1) var(--cb-grid);
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .alert-box {
+      background: rgba(205, 39, 48, 0.1);
+      border-left: 4px solid var(--cb-alert);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .success-box {
+      background: rgba(110, 231, 161, 0.1);
+      border-left: 4px solid var(--cb-good);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .warn-box {
+      background: rgba(252, 211, 77, 0.1);
+      border-left: 4px solid var(--cb-warn);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    .info-box {
+      background: rgba(122, 162, 255, 0.1);
+      border-left: 4px solid var(--cb-accent);
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+
+    code {
+      background: var(--cb-bg-900);
+      color: var(--cb-good);
+      padding: 0.2rem 0.4rem;
+      border-radius: var(--cb-round);
+      font-size: 0.9em;
+      font-family: var(--cb-font-ui);
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--cb-ink-2);
+      line-height: 1.6;
+    }
+
+    strong {
+      color: var(--cb-ink);
+      font-weight: 600;
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--cb-ink-2);
+      line-height: 1.6;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: var(--cb-bg-800);
+      border: var(--cb-stroke-2) solid var(--cb-edge);
+      box-shadow: inset 0 0 0 var(--cb-stroke-1) var(--cb-grid);
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: var(--cb-accent);
+      color: var(--cb-bg-900);
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      text-transform: var(--cb-tt);
+      letter-spacing: var(--cb-track-wide);
+    }
+
+    td {
+      padding: 0.75rem;
+      border-bottom: var(--cb-stroke-1) solid var(--cb-grid);
+      color: var(--cb-ink-2);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(122, 162, 255, 0.05);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      table {
+        font-size: 0.8rem;
+      }
+
+      th, td {
+        padding: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Home</a>
+    
+    <h1>System Overview</h1>
+
+    <div class="info-box">
+      <p><strong>Primary control:</strong> Each Ecobee (one per zone) decides what to call for (Heat / Cool / AUX / Fan / Dehumidify).</p>
+
+      <p><strong>BMPLUS-3000 zone panel:</strong> Acts as a traffic director — routes those calls to the equipment and positions dampers.</p>
+
+      <p><strong>Equipment:</strong> Rheem RP14 single-stage heat pump with single-stage propane furnace (aux heat).</p>
+
+      <p><strong>Dampers:</strong> Each zone's M1 = common, M4 = close, M6 = open.</p>
+
+      <p style="margin-bottom: 0;"><strong>Dehumidifier:</strong> GeneralAire unit triggered only by Zone 2 (basement) Ecobee's humidity call through a relay.</p>
+    </div>
+
+    <h2>1. Heating – Heat Pump Mode</h2>
+
+    <div class="card">
+      <p><strong>Trigger:</strong> Either Ecobee calls for heat when outdoor conditions are above your Ecobee's balance-point temperature.<br>
+      Signals: Ecobee → Y1 (compressor), O (reversing valve = heat), G (fan).</p>
+
+      <h3>Sequence</h3>
+
+      <p>Ecobee issues heat call.</p>
+
+      <p><strong>BMPLUS-3000:</strong></p>
+      <ol>
+        <li>Opens the calling zone's damper(s).</li>
+        <li>Closes all other dampers.</li>
+        <li>Sends Y1 + O + G to the heat pump / air handler.</li>
+        <li>Heat pump energizes in heating mode.</li>
+        <li>Blower starts immediately (some units have a 5–10 s delay).</li>
+      </ol>
+
+      <p><strong>When the thermostat is satisfied:</strong></p>
+      <ol>
+        <li>Ecobee drops Y1; BMPLUS stops the call; blower runs ~90 s post-purge.</li>
+        <li>Dampers return to neutral / standby.</li>
+      </ol>
+
+      <h3>Normal Delays &amp; Protections</h3>
+
+      <ul>
+        <li><strong>Compressor short-cycle delay:</strong> 5 min built-in at the heat pump and sometimes in Ecobee.</li>
+        <li><strong>Zone panel call overlap delay:</strong> ~30 s stagger to prevent simultaneous zone calls.</li>
+        <li><strong>Fan off-delay:</strong> 60–90 s to clear coil heat.</li>
+      </ul>
+    </div>
+
+    <h2>2. Auxiliary Heat – Propane Furnace (Dual Fuel)</h2>
+
+    <div class="card">    <p><strong>Trigger:</strong></p>
+
+    <p>Ecobee decides outdoor temperature is below your Compressor Lockout or Aux Lock-in setpoint.</p>
+
+    <p>Or the heat pump ran too long without reaching setpoint.</p>
+
+    <p><strong>Signals:</strong> Ecobee → W1 (heat call) only — no Y1/O.</p>
+
+    <h3>Sequence</h3>
+
+    <ol>
+      <li>Ecobee disables the compressor and energizes W1.</li>
+      <li>BMPLUS-3000 forwards W1 to the furnace control board.</li>
+    </ol>
+
+    <p><strong>Furnace:</strong></p>
+    <ol>
+      <li>Begins its ignition sequence (~30 s pre-purge, ignition, flame establish).</li>
+      <li>Controls its own blower delay (typically 30–45 s after burner ignition).</li>
+    </ol>
+
+    <p><strong>When satisfied:</strong></p>
+    <ol>
+      <li>Ecobee drops W1.</li>
+      <li>Furnace shuts gas, runs post-purge fan (60–90 s).</li>
+      <li>BMPLUS opens/closes dampers back to normal.</li>
+    </ol>
+
+    <h3>Normal Delays &amp; Protections</h3>
+
+    <p><strong>Compressor lockout:</strong> Ensures no simultaneous HP + furnace run.</p>
+
+    <p>Furnace time-based fan control: The BMPLUS lets the furnace handle blower timing.</p>
+
+    <p><strong>Short-cycle prevention:</strong> Ecobee minimum on/off times (default 5 min).</p>
+  </div>
+
+    <h2>3. Cooling – Heat Pump Mode</h2>
+  <div class="card">
+
+    <p><strong>Trigger:</strong> Either Ecobee calls for cooling (indoor temp &gt; setpoint).<br>
+    Signals: Ecobee → Y1 (compressor), O (reversing valve = cool), G (fan).</p>
+
+    <h3>Sequence</h3>
+
+    <ol>
+      <li>Ecobee calls for cooling.</li>
+      <li>BMPLUS opens the calling zone's damper(s), closes others.</li>
+      <li>Sends Y1 + O + G to the outdoor unit.</li>
+      <li>Heat pump runs in cooling mode.</li>
+      <li>Blower runs immediately.</li>
+    </ol>
+
+    <p><strong>When satisfied:</strong></p>
+    <ol>
+      <li>Ecobee drops Y1; BMPLUS releases the call.</li>
+      <li>Blower continues 60–90 s post-cool-off.</li>
+      <li>Dampers normalize.</li>
+      <li>Normal Delays &amp; Protections</li>
+      <li>Compressor anti-short-cycle: 5 min typical.</li>
+      <li>Condensate / coil defrost safety: BMPLUS ignores brief drops in thermostat signal.</li>
+    </ol>
+
+    <p><strong>Zone coordination delay:</strong> ~30 s between zone calls.</p>
+  </div>
+
+    <h2>4. Dehumidify – Basement Zone Only</h2>
+  <div class="card">
+    <div class="warn-box">
+      <p><strong>⚠️ Zone 2 Only:</strong> Dehumidifier is wired to Zone 2 (basement) Ecobee only. This function is not available on Zone 1.</p>
+    </div>
+
+    <p><strong>Trigger:</strong> Zone 2 Ecobee detects humidity above setpoint (e.g., &gt; 50%).<br>
+    Signals: Ecobee ACC+ → relay coil → GeneralAire D1–D2 closed.</p>
+
+    <h3>Sequence</h3>
+
+    <ol>
+      <li>Ecobee sends 24 VAC on ACC+.</li>
+      <li>Relay (RIBU1C) energizes:
+        <ul>
+          <li>Closes D1–D2 on GeneralAire → dehumidifier runs.</li>
+          <li>Forces Zone 2 damper OPEN (M1→M6).</li>
+          <li>Forces Zone 1 damper CLOSED (M1→M4).</li>
+        </ul>
+      </li>
+      <li>BMPLUS fan output energizes blower at low speed (G signal).</li>
+      <li>Dehumidifier pulls air from the return; exhausts dry air back into the same plenum.</li>
+    </ol>
+
+    <p><strong>When humidity is satisfied:</strong></p>
+    <ol>
+      <li>Ecobee drops ACC+; relay de-energizes; D1–D2 open → dehumidifier stops.</li>
+      <li>Dampers revert to normal zone control.</li>
+      <li>Blower runs its fan-off delay (30–60 s).</li>
+    </ol>
+
+    <h3>Normal Delays &amp; Protections</h3>
+
+    <p><strong>Hysteresis:</strong> Ecobee waits ~2 % RH below setpoint before dropping call (prevents short cycling).</p>
+
+    <p>Fan During Dehumidify: Set to OFF so blower runs only when the relay is active.</p>
+
+    <p><strong>Lockout:</strong> Dehumidifier will not run during compressor defrost or aux-heat mode.</p>
+
+    <p><strong>Minimum off-time:</strong> Usually 3 min internal to GeneralAire.</p>
+  </div>
+
+    <h2>5. Common Timing Summary</h2>
+  <div class="card">
+
+    <table>
+      <thead>
+        <tr>
+          <th>Function</th>
+          <th>Typical Delay / Protection</th>
+          <th>Who Controls It</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Compressor restart</td>
+          <td>5 min</td>
+          <td>Heat pump &amp; Ecobee</td>
+        </tr>
+        <tr>
+          <td>Furnace pre-purge</td>
+          <td>30 s</td>
+          <td>Furnace</td>
+        </tr>
+        <tr>
+          <td>Furnace blower start</td>
+          <td>30–45 s</td>
+          <td>Furnace</td>
+        </tr>
+        <tr>
+          <td>Blower off delay</td>
+          <td>60–90 s</td>
+          <td>Furnace or BMPLUS</td>
+        </tr>
+        <tr>
+          <td>Zone call spacing</td>
+          <td>30 s stagger</td>
+          <td>BMPLUS</td>
+        </tr>
+        <tr>
+          <td>Dehumidifier hysteresis</td>
+          <td>~2 % RH</td>
+          <td>Ecobee</td>
+        </tr>
+        <tr>
+          <td>Dehumidifier min-off</td>
+          <td>3 min</td>
+          <td>GeneralAire</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+    <h2>6. What You'll Hear / See in Operation</h2>
+  <div class="card">
+
+    <h3>Situation &amp; What You'll Notice</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Situation</th>
+          <th>What You'll Notice</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Normal heat pump heat</td>
+          <td>Outdoor unit running, indoor blower on low speed; only one zone blowing air.</td>
+        </tr>
+        <tr>
+          <td>Aux heat (propane)</td>
+          <td>Outdoor unit silent, furnace firing after short delay; stronger airflow and warmer discharge.</td>
+        </tr>
+        <tr>
+          <td>Cooling</td>
+          <td>Outdoor unit running, cooler supply air; non-calling zone dampers closed (quiet).</td>
+        </tr>
+        <tr>
+          <td>Dehumidify</td>
+          <td>No outdoor unit; basement zone airflow only; subtle relay click near panel; GeneralAire hums.</td>
+        </tr>
+        <tr>
+          <td>Mode changes / power flicker</td>
+          <td>Ecobees may display "Calibrating" for ~1 min if panel browns out. Installing a small UPS + dedicated transformer eliminates this.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Key Takeaways</h3>
+
+    <ul>
+      <li>BMPLUS-3000 adds 30 s dampers-stagger and fan control, but Ecobee handles mode logic, lockouts, and delays.</li>
+      <li>Only one zone damper opens at a time to protect airflow.</li>
+      <li>Post-run fan periods are normal and help temperature balance.</li>
+      <li>Dehumidify mode isolates Zone 2 — air movement limited to basement zone.</li>
+      <li>Expect quiet pauses between stage transitions; the system is protecting itself.</li>
+    </ul>
+  </div>
+  </div>
+</body>
+</html>

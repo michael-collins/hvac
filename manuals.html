@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Equipment Manuals - HVAC System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Archivo+Narrow:wght@600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* --- Core palette (blueprint theme) --- */
+  --cb-bg-900: #212931;   /* deep blue-grey background */
+  --cb-bg-800: #252E35;   /* slightly lighter panel fill */
+  --cb-ink:     #E7EFE4;   /* primary line/text: pale mint-white */
+  --cb-ink-2:   #CFDAD0;   /* secondary line/text */
+  --cb-grid:    #5C6668;   /* grid/annotation lines */
+  --cb-muted:   #98A5A3;   /* muted labels */
+  --cb-edge:    #8C9698;   /* panel edges / dividers */
+  --cb-alert:   #CD2730;   /* red markers/dots */
+  --cb-alert-2: #Bf2F36;   /* darker red, hover/active */
+  --cb-accent:  #7aa2ff;   /* blue accent */
+  --cb-good:    #6ee7a1;   /* green accent */
+  --cb-warn:    #fcd34d;   /* yellow accent */
+
+  /* --- Strokes --- */
+  --cb-stroke-1: 1px;
+  --cb-stroke-2: 2px;
+  --cb-round: 2px;
+
+  /* --- Typography --- */
+  --cb-font-ui: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --cb-font-head: 'Archivo Narrow', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --cb-tt: uppercase;
+  --cb-track-tight: 0.04em;
+  --cb-track-wide: 0.08em;
+
+  /* --- Shadows --- */
+  --cb-glow: 0 0 0.5px rgba(231,239,228,.55), 0 0 2px rgba(231,239,228,.18);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--cb-bg-900);color:var(--cb-ink);font-family:var(--cb-font-ui);letter-spacing:var(--cb-track-tight);line-height:1.35;text-rendering:geometricPrecision}
+a{color:var(--cb-ink);text-decoration:none;border-bottom:var(--cb-stroke-1) solid var(--cb-muted)}
+a:hover{color:var(--cb-alert);border-color:var(--cb-alert)}
+.container{max-width:1600px;margin:0 auto;padding:32px}
+
+.nav{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:24px}
+.nav a{
+  background:var(--cb-bg-800);
+  padding:10px 14px;
+  border-radius:0;
+  border:var(--cb-stroke-2) solid var(--cb-edge);
+  box-shadow:inset 0 0 0 var(--cb-stroke-1) var(--cb-grid);
+  color:var(--cb-ink-2);
+  text-transform:var(--cb-tt);
+  letter-spacing:var(--cb-track-wide);
+  font-weight:600;
+  font-size:0.82rem;
+  border-bottom:none;
+  transition:all 0.15s ease;
+}
+.nav a:hover{
+  border-color:var(--cb-alert);
+  color:var(--cb-alert);
+  box-shadow:var(--cb-glow);
+}
+
+h1{
+  font-family:var(--cb-font-head);
+  text-transform:var(--cb-tt);
+  letter-spacing:var(--cb-track-wide);
+  font-weight:600;
+  font-size:28px;
+  margin:.2em 0 0.2em;
+}
+h2{
+  font-family:var(--cb-font-head);
+  text-transform:var(--cb-tt);
+  letter-spacing:var(--cb-track-wide);
+  font-weight:600;
+  font-size:22px;
+  margin:1.2em 0 .4em;
+  color:var(--cb-ink);
+}
+h3{
+  font-family:var(--cb-font-head);
+  text-transform:var(--cb-tt);
+  letter-spacing:var(--cb-track-wide);
+  font-weight:600;
+  font-size:18px;
+  margin:1em 0 .4em;
+  color:var(--cb-accent);
+}
+
+.card{
+  background:var(--cb-bg-800);
+  border:var(--cb-stroke-2) solid var(--cb-edge);
+  box-shadow:inset 0 0 0 var(--cb-stroke-1) var(--cb-grid);
+  border-radius:0;
+  padding:1.5rem;
+  margin:1rem 0;
+}
+
+.info-box{
+  background:rgba(122, 162, 255, 0.1);
+  border-left:4px solid var(--cb-accent);
+  padding:1rem;
+  margin:1rem 0;
+}
+
+.manual-link{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:var(--cb-bg-800);
+  border:var(--cb-stroke-2) solid var(--cb-edge);
+  box-shadow:inset 0 0 0 var(--cb-stroke-1) var(--cb-grid);
+  padding:14px 16px;
+  margin:8px 0;
+  transition:all 0.15s ease;
+  border-bottom:none;
+}
+.manual-link:hover{
+  border-color:var(--cb-accent);
+  box-shadow:var(--cb-glow);
+}
+.manual-link .icon{
+  font-size:24px;
+  color:var(--cb-accent);
+}
+.manual-link .details{
+  flex:1;
+}
+.manual-link .title{
+  font-weight:600;
+  color:var(--cb-ink);
+  margin-bottom:4px;
+  font-size:0.95rem;
+}
+.manual-link .desc{
+  font-size:0.82rem;
+  color:var(--cb-muted);
+}
+.manual-link .size{
+  font-size:0.75rem;
+  color:var(--cb-grid);
+  font-weight:600;
+  text-transform:var(--cb-tt);
+  letter-spacing:var(--cb-track-wide);
+}
+
+.note{color:var(--cb-muted);font-size:.82rem;letter-spacing:var(--cb-track-tight)}
+p{color:var(--cb-ink-2);line-height:1.6}
+ul{color:var(--cb-ink-2);line-height:1.6}
+code{background:rgba(122,162,255,0.15);padding:2px 6px;border-radius:2px;font-size:0.9em;color:var(--cb-accent)}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Equipment Manuals</h1>
+  <p class="note">Installation guides, technical bulletins, and owner's manuals for all system components.</p>
+
+  <nav class="nav">
+    <a href="index.html">← Back to Home</a>
+    <a href="wiring-flow.html">HVAC System Diagram</a>
+    <a href="ecobee-setup.html">Ecobee Setup</a>
+    <a href="system-information.html">System Information</a>
+  </nav>
+
+  <div class="info-box">
+    <p><strong>Quick Reference:</strong> All manuals are in PDF format. Click any link below to download or view the documentation for your equipment.</p>
+  </div>
+
+  <h2>Heat Pump & HVAC</h2>
+  <div class="card">
+    <a href="manuals/rp14.pdf" class="manual-link" download>
+      <div class="icon">📘</div>
+      <div class="details">
+        <div class="title">Rheem RP14 Heat Pump</div>
+        <div class="desc">Installation and service manual for RP14 series heat pump units</div>
+      </div>
+      <div class="size">PDF</div>
+    </a>
+  </div>
+
+  <h2>Zone Control</h2>
+  <div class="card">
+    <a href="manuals/bmplus-3000.pdf" class="manual-link" download>
+      <div class="icon">📘</div>
+      <div class="details">
+        <div class="title">BMPLUS-3000 Zone Panel</div>
+        <div class="desc">Installation and operation manual for BMPLUS-3000 zone control board</div>
+      </div>
+      <div class="size">PDF</div>
+    </a>
+
+    <a href="manuals/bmplus-3000-tech-bulletin.pdf" class="manual-link" download>
+      <div class="icon">📄</div>
+      <div class="details">
+        <div class="title">BMPLUS-3000 Technical Bulletin</div>
+        <div class="desc">Technical reference and wiring diagrams</div>
+      </div>
+      <div class="size">PDF</div>
+    </a>
+  </div>
+
+  <h2>Thermostats</h2>
+  <div class="card">
+    <a href="manuals/ecobee_Premium_install-setup-user_manual_v1.pdf" class="manual-link" download>
+      <div class="icon">📘</div>
+      <div class="details">
+        <div class="title">Ecobee Premium Thermostat</div>
+        <div class="desc">Complete installation, setup, and user manual for Ecobee Premium</div>
+      </div>
+      <div class="size">PDF</div>
+    </a>
+
+    <a href="manuals/ST_Premium_QSG_Digital_US_20220404.pdf" class="manual-link" download>
+      <div class="icon">📄</div>
+      <div class="details">
+        <div class="title">Ecobee Premium Quick Start Guide</div>
+        <div class="desc">Quick setup guide for Ecobee Smart Thermostat Premium</div>
+      </div>
+      <div class="size">PDF</div>
+    </a>
+
+    <a href="manuals/Enhanced_setup-user_manual_2023_v1.pdf" class="manual-link" download>
+      <div class="icon">📘</div>
+      <div class="details">
+        <div class="title">Ecobee Enhanced Thermostat</div>
+        <div class="desc">Setup and user manual for Ecobee Smart Thermostat Enhanced</div>
+      </div>
+      <div class="size">PDF</div>
+    </a>
+  </div>
+
+  <h2>Dehumidifier</h2>
+  <div class="card">
+    <a href="manuals/300-8105_-_DH75_DH100_INSTALLATION_OWNERS_MANUAL_5333_and_5334_REV_B.pdf" class="manual-link" download>
+      <div class="icon">📘</div>
+      <div class="details">
+        <div class="title">GeneralAire DH75/DH100 Dehumidifier</div>
+        <div class="desc">Installation and owner's manual for GeneralAire DH75 and DH100 series (Models 5333 & 5334)</div>
+      </div>
+      <div class="size">PDF</div>
+    </a>
+  </div>
+
+  <h2>Filters</h2>
+  <div class="card">
+    <a href="https://www.homedepot.com/p/Honeywell-Home-20-x-20-x-4-Pleated-Air-Filter-FPR-10-MERV-12-CF200D2020/203781263" class="manual-link" target="_blank" rel="noopener">
+      <div class="icon">🔲</div>
+      <div class="details">
+        <div class="title">Main Blower Filter</div>
+        <div class="desc">Honeywell Home 20 x 20 x 4 Pleated Air Filter FPR 10, MERV 12</div>
+      </div>
+      <div class="size">Home Depot</div>
+    </a>
+
+    <a href="https://www.lowes.com/pd/Filtrete-2-Pack-1085-MPR-Micro-Allergen-Extra-Common-12-in-x-12-in-x-1-in-Actual-11-7-in-x-11-7-in-x-0-8125-in-Electrostatic-Pleated-Air-Filter/3123843" class="manual-link" target="_blank" rel="noopener">
+      <div class="icon">🔲</div>
+      <div class="details">
+        <div class="title">Dehumidifier Filter</div>
+        <div class="desc">Filtrete 12 x 12 x 1 MERV 11 1085 MPR Allergen Defense Extra (2-Pack)</div>
+      </div>
+      <div class="size">Lowe's</div>
+    </a>
+  </div>
+
+</div>
+</body>
+</html>
