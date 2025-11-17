@@ -10,6 +10,9 @@
 
   --cb-alert:   #CD2730;   /* red markers/dots */
   --cb-alert-2: #Bf2F36;   /* darker red, hover/active */
+  --cb-accent:  #7aa2ff;   /* blue accent */
+  --cb-good:    #6ee7a1;   /* green accent */
+  --cb-warn:    #fcd34d;   /* yellow accent */
 
   /* --- Strokes (diagram-like) --- */
   --cb-stroke-1: 1px;
@@ -431,6 +434,131 @@ h2{font-family:var(--cb-font-head);text-transform:var(--cb-tt);letter-spacing:va
 }
 
 /* Make info panel scrollable with custom scrollbar */
+/* Info panel floating window styling */
+.info-panel-node {
+  font-family: var(--cb-font-ui);
+  cursor: default !important;
+  pointer-events: auto !important;
+}
+
+.info-panel-node .react-flow__resize-control {
+  pointer-events: auto !important;
+}
+
+.info-panel-node .react-flow__resize-control.handle {
+  pointer-events: auto !important;
+}
+
+.info-panel-node .drag-handle {
+  cursor: move !important;
+}
+
+.info-panel-node .info-panel-header button:hover {
+  color: var(--cb-accent);
+}
+
+.info-panel-node .info-panel-content {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  cursor: default !important;
+  user-select: text !important;
+  pointer-events: auto !important;
+}
+
+.info-panel-node .info-panel-content * {
+  user-select: text !important;
+  pointer-events: auto !important;
+}
+
+.info-panel-node .info-panel-content h2 {
+  margin-top: 0;
+  color: var(--cb-ink);
+  font-family: 'Archivo Narrow', sans-serif;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.info-panel-node .info-panel-content h3 {
+  color: var(--cb-accent);
+  font-family: 'Archivo Narrow', sans-serif;
+  font-size: 1.1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.info-panel-node .info-panel-content h4 {
+  font-family: 'Archivo Narrow', sans-serif;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-panel-node .info-panel-content p {
+  margin: 0.5rem 0;
+}
+
+.info-panel-node .info-panel-content ul,
+.info-panel-node .info-panel-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.info-panel-node .info-panel-content li {
+  margin: 0.3rem 0;
+}
+
+.info-panel-node .info-panel-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+
+.info-panel-node .info-panel-content table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  text-align: left;
+  padding: 0.5rem;
+  color: var(--cb-ink);
+  border-bottom: 2px solid var(--cb-grid);
+}
+
+.info-panel-node .info-panel-content table td {
+  padding: 0.5rem;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--cb-grid);
+}
+
+.info-panel-node .info-panel-content strong {
+  color: var(--cb-ink);
+  font-weight: 600;
+}
+
+/* Scrollbar styling for info panel content */
+.info-panel-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.info-panel-content::-webkit-scrollbar-track {
+  background: var(--cb-bg-900);
+}
+
+.info-panel-content::-webkit-scrollbar-thumb {
+  background: var(--cb-grid);
+  border-radius: 4px;
+}
+
+.info-panel-content::-webkit-scrollbar-thumb:hover {
+  background: var(--cb-ink-2);
+}
+
+/* Legacy info-panel styles (for reference, can be removed) */
 #info-panel::-webkit-scrollbar {
   width: 8px;
 }
@@ -470,3 +598,4 @@ h2{font-family:var(--cb-font-head);text-transform:var(--cb-tt);letter-spacing:va
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+

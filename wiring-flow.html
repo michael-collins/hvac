@@ -25,12 +25,7 @@
       <button id="highlightDehumid">💧 Highlight Dehumidifier</button>
       <button id="resetBtn">🔄 Reset Highlight</button>
     </div>
-    <div style="display: flex; width: 100%; gap: 0;">
-      <div id="root" style="flex: 1; min-width: 0;"></div>
-      <div id="info-panel" style="width: 400px; height: 850px; background: var(--cb-bg-900); border-left: 2px solid var(--cb-ink-dim); overflow-y: auto; padding: 20px; display: none;">
-        <div id="info-content"></div>
-      </div>
-    </div>
+    <div id="root" style="width: 100%;"></div>
   </div>
 
   
@@ -44,6 +39,131 @@
 // Get React utilities and ReactFlow components
 const { useState, useCallback, createElement: h, Fragment } = React;
 const { ReactFlow: RF, Controls, Background, MiniMap, Handle, Position, NodeToolbar, NodeResizer } = window.ReactFlow;
+
+// Info Panel Node - draggable, resizable floating window
+const InfoPanelNode = React.memo(({ data, id, selected }) => {
+  const [isMinimized, setIsMinimized] = useState(false);
+  
+  console.log('InfoPanelNode render - selected:', selected);
+  
+  if (!data || !data.content) {
+    console.error('InfoPanelNode: No content data! data object:', data);
+    return null;
+  }
+  
+  const handleMinimize = () => {
+    setIsMinimized(!isMinimized);
+  };
+  
+  return h(Fragment, {},
+    h(NodeResizer, {
+      minWidth: 300,
+      minHeight: isMinimized ? 50 : 200,
+      maxWidth: 1000,
+      maxHeight: 900,
+      isVisible: selected,
+      lineStyle: { borderColor: 'var(--cb-accent)', borderWidth: '2px' },
+      handleStyle: { 
+        background: 'var(--cb-accent)',
+        width: '10px',
+        height: '10px',
+        borderRadius: '0',
+        border: '1px solid var(--cb-grid)'
+      }
+    }),
+    h('div', { 
+      className: 'info-panel-node',
+      style: { 
+        width: '450px',
+        height: isMinimized ? '50px' : '600px',
+        background: 'var(--cb-bg-800)',
+        border: 'var(--cb-stroke-2) solid var(--cb-accent)',
+        borderRadius: '0',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxShadow: 'inset 0 0 0 var(--cb-stroke-1) var(--cb-grid)',
+        position: 'relative',
+        zIndex: 1000
+      }
+    },
+    // Header with controls
+    h('div', {
+      className: 'info-panel-header drag-handle',
+      style: {
+        background: 'var(--cb-bg-900)',
+        padding: '8px 12px',
+        borderBottom: isMinimized ? 'none' : '1px solid var(--cb-edge)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        cursor: 'move',
+        userSelect: 'none',
+        flexShrink: 0
+      }
+    },
+      h('div', { 
+        style: { 
+          fontWeight: '600', 
+          color: 'var(--cb-accent)',
+          fontSize: '0.9rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em'
+        }
+      }, data.title || 'System Information'),
+      h('div', { style: { display: 'flex', gap: '8px' } },
+        h('button', {
+          onClick: (e) => {
+            e.stopPropagation();
+            setIsMinimized(!isMinimized);
+          },
+          style: {
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--cb-ink)',
+            cursor: 'pointer',
+            fontSize: '16px',
+            padding: '0 4px'
+          }
+        }, isMinimized ? '□' : '_'),
+        h('button', {
+          onClick: (e) => {
+            e.stopPropagation();
+            if (window.closeInfoPanel) window.closeInfoPanel();
+          },
+          style: {
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--cb-alert)',
+            cursor: 'pointer',
+            fontSize: '16px',
+            padding: '0 4px'
+          }
+        }, '×')
+      )
+    ),
+    // Content area - render as plain div with inner HTML
+    !isMinimized && React.createElement('div', {
+      className: 'info-panel-content nopan',
+      style: {
+        padding: '16px',
+        overflowY: 'auto',
+        flex: '1 1 auto',
+        color: 'var(--cb-ink)',
+        lineHeight: '1.6',
+        fontSize: '0.9rem',
+        background: 'var(--cb-bg-800)',
+        cursor: 'default'
+      },
+      dangerouslySetInnerHTML: { __html: data.content },
+      onMouseDown: (e) => {
+        // Prevent drag from starting when clicking on content
+        e.stopPropagation();
+      }
+    })
+    )
+  );
+});
 
 // Custom node component with multiple handles
 const HVACNode = React.memo(({ data, selected }) => {
@@ -100,7 +220,8 @@ const HVACNode = React.memo(({ data, selected }) => {
 });
 
 const nodeTypes = {
-  hvacNode: HVACNode
+  hvacNode: HVACNode,
+  infoPanel: InfoPanelNode
 };
 
 // Initial nodes with handles
@@ -349,14 +470,48 @@ function Flow() {
   const [rfInstance, setRfInstance] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [infoPanelNode, setInfoPanelNode] = useState(null);
 
   // Expose setEdges and setNodes globally for highlight functions
   window.flowSetEdges = setEdges;
   window.flowSetNodes = setNodes;
+  window.flowSetInfoPanel = setInfoPanelNode;
   
   // Expose edit mode toggle
   window.toggleEditMode = () => {
     setIsEditMode(prev => !prev);
+  };
+
+  // Expose function to show/close info panel
+  window.showInfoPanel = (title, content) => {
+    console.log('showInfoPanel called with:', { title, contentLength: content?.length, contentPreview: content?.substring(0, 100) });
+    const newInfoNode = {
+      id: 'info-panel-node',
+      type: 'infoPanel',
+      position: { x: 900, y: 100 },
+      data: { title: title, content: content },
+      draggable: true,
+      selectable: true,
+      connectable: false,
+      deletable: false,
+      zIndex: 1000,
+      dragHandle: '.drag-handle',
+      resizing: true,
+      // Remove fixed style dimensions - let NodeResizer control the size
+      style: {}
+    };
+    console.log('Created node with data:', newInfoNode.data);
+    setInfoPanelNode(newInfoNode);
+    // Update nodes immediately
+    setNodes(nds => {
+      const filtered = nds.filter(n => n.id !== 'info-panel-node');
+      return [...filtered, newInfoNode];
+    });
+  };
+
+  window.closeInfoPanel = () => {
+    setInfoPanelNode(null);
+    setNodes(nds => nds.filter(n => n.id !== 'info-panel-node'));
   };
 
   const onNodesChange = useCallback((changes) => {
@@ -372,7 +527,15 @@ function Flow() {
       filteredChanges.forEach(change => {
         if (change.type === 'position' && change.position) {
           const node = updated.find(n => n.id === change.id);
-          if (node) node.position = change.position;
+          if (node) {
+            // Allow info panel to always be draggable
+            if (node.type === 'infoPanel') {
+              node.position = change.position;
+            } else if (isEditMode) {
+              // Only allow HVAC nodes to move in edit mode
+              node.position = change.position;
+            }
+          }
         }
         if (change.type === 'remove') {
           const idx = updated.findIndex(n => n.id === change.id);
@@ -388,7 +551,7 @@ function Flow() {
       window.currentNodes = updated;
       return updated;
     });
-  }, []);
+  }, [isEditMode]);
 
   const onEdgesChange = useCallback((changes) => {
     // Only update edges if there are actual changes that matter
@@ -437,7 +600,7 @@ function Flow() {
   };
 
   return h(RF, {
-    nodes,
+    nodes: nodes,
     edges,
     onNodesChange,
     onEdgesChange,
@@ -448,13 +611,16 @@ function Flow() {
     fitView: false,
     minZoom: 0.2,
     maxZoom: 2,
-    nodesDraggable: isEditMode,
+    nodesDraggable: true,
     nodesConnectable: false,
+    nodesFocusable: true,
     elementsSelectable: true,
     proOptions: { hideAttribution: true },
     defaultEdgeOptions: {
       type: 'smoothstep'
-    }
+    },
+    onlyRenderVisibleElements: false,
+    preventScrolling: false
   },
     h(Controls),
     h(Background, { color: '#223', gap: 16 }),
@@ -650,34 +816,23 @@ const systemInfo = {
 };
 
 function showInfoPanel(mode) {
-  const panel = document.getElementById('info-panel');
-  const content = document.getElementById('info-content');
-  
   if (mode && systemInfo[mode]) {
-    content.innerHTML = `
-      <h2 style="margin-top: 0; color: var(--cb-ink); font-family: 'Archivo Narrow', sans-serif; font-size: 1.5rem; margin-bottom: 1rem;">
-        ${systemInfo[mode].title}
-      </h2>
-      <div style="color: var(--cb-ink); line-height: 1.6;">
-        ${systemInfo[mode].content}
-      </div>
-    `;
-    panel.style.display = 'block';
+    const title = systemInfo[mode].title;
+    const content = systemInfo[mode].content;
+    
+    if (window.showInfoPanel) {
+      window.showInfoPanel(title, content);
+    }
   } else {
-    panel.style.display = 'none';
+    if (window.closeInfoPanel) {
+      window.closeInfoPanel();
+    }
   }
 }
 
 function showConfigPanel() {
-  const panel = document.getElementById('info-panel');
-  const content = document.getElementById('info-content');
-  
-  content.innerHTML = `
-    <h2 style="margin-top: 0; color: var(--cb-ink); font-family: 'Archivo Narrow', sans-serif; font-size: 1.5rem; margin-bottom: 1rem;">
-      ⚙️ BMPLUS-3000 Configuration
-    </h2>
-    <div style="color: var(--cb-ink); line-height: 1.6;">
-      
+  const title = '⚙️ BMPLUS-3000 Configuration';
+  const content = `
       <h3>DIP Switches</h3>
       <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
         <thead>
@@ -796,9 +951,11 @@ function showConfigPanel() {
         <p style="margin: 0.5rem 0; font-size: 0.85rem; font-style: italic;">Without an outdoor sensor on BMPLUS, POT 2 won't provide compressor lockout protection during WiFi outages.</p>
       </div>
       
-    </div>
-  `;
-  panel.style.display = 'block';
+    `;
+  
+  if (window.showInfoPanel) {
+    window.showInfoPanel(title, content);
+  }
 }
 
 window.showConfigPanel = showConfigPanel;
@@ -843,8 +1000,12 @@ function highlightCustomPath(edgeIds, description, infoMode) {
   window.currentEdges = updatedEdges;
   window.currentNodes = updatedNodes;
   
-  if (infoMode) {
-    showInfoPanel(infoMode);
+  if (infoMode && systemInfo[infoMode]) {
+    const title = systemInfo[infoMode].title;
+    const content = systemInfo[infoMode].content;
+    if (window.showInfoPanel) {
+      window.showInfoPanel(title, content);
+    }
   }
   
   if (description) {
